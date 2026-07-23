@@ -1,0 +1,68 @@
+[
+  {
+    "id": "bh_hr_001",
+    "role": ["All"],
+    "category": "HR",
+    "experience_level": ["Junior", "Mid", "Senior"],
+    "difficulty": 1,
+    "question": "Tell me about yourself and your professional journey.",
+    "expected_keywords": ["background", "experience", "journey", "career", "skills"],
+    "follow_up_questions": ["What motivated you to apply for this specific role?"],
+    "score_weight": 2
+  },
+  {
+    "id": "bh_hr_002",
+    "role": ["All"],
+    "category": "HR",
+    "experience_level": ["Junior", "Mid", "Senior"],
+    "difficulty": 1,
+    "question": "Where do you see yourself in five years?",
+    "expected_keywords": ["growth", "leadership", "impact", "learning", "goals"],
+    "follow_up_questions": ["How does this role align with those goals?"],
+    "score_weight": 2
+  },
+  {
+    "id": "bh_sc_001",
+    "role": ["All"],
+    "category": "Behavioral",
+    "experience_level": ["Junior", "Mid", "Senior"],
+    "difficulty": 3,
+    "question": "Tell me about a time you had a conflict with a team member and how you resolved it.",
+    "expected_keywords": ["communication", "compromise", "listening", "empathy", "resolution", "discussion"],
+    "follow_up_questions": ["Looking back, is there anything you would have done differently?"],
+    "score_weight": 4
+  },
+  {
+    "id": "bh_sc_002",
+    "role": ["All"],
+    "category": "Behavioral",
+    "experience_level": ["Mid", "Senior"],
+    "difficulty": 4,
+    "question": "Describe a situation where you had to meet a tight deadline. How did you prioritize your work?",
+    "expected_keywords": ["prioritize", "triage", "focus", "MVP", "communication", "time management"],
+    "follow_up_questions": ["Did you have to push back on any requirements?"],
+    "score_weight": 4
+  },
+  {
+    "id": "bh_ld_001",
+    "role": ["All"],
+    "category": "Leadership",
+    "experience_level": ["Senior"],
+    "difficulty": 5,
+    "question": "Tell me about a time you had to mentor a junior team member who was struggling.",
+    "expected_keywords": ["mentor", "guidance", "patience", "pair programming", "support", "feedback"],
+    "follow_up_questions": ["How did you measure their improvement over time?"],
+    "score_weight": 5
+  },
+  {
+    "id": "bh_cm_001",
+    "role": ["All"],
+    "category": "Communication",
+    "experience_level": ["Junior", "Mid", "Senior"],
+    "difficulty": 2,
+    "question": "How do you explain complex technical concepts to non-technical stakeholders?",
+    "expected_keywords": ["analogies", "business value", "avoid jargon", "visuals", "clarity"],
+    "follow_up_questions": ["Can you give me an example of a time you did this successfully?"],
+    "score_weight": 3
+  }
+]

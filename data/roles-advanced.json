@@ -1,0 +1,234 @@
+{
+  "roles": [
+    {
+      "title": "Frontend Developer",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": { "React": 5, "Next.js": 5, "Vue": 4, "Angular": 4, "Svelte": 3 },
+        "technologies": { "JavaScript": 3, "TypeScript": 4, "HTML": 1, "CSS": 1, "SASS": 2, "Tailwind": 2 },
+        "tools": { "Webpack": 2, "Vite": 2, "Figma": 1, "Jest": 2, "Cypress": 2 },
+        "keywords": { "Frontend": 5, "UI": 2, "User Interface": 2, "Web Application": 1 }
+      }
+    },
+    {
+      "title": "Backend Developer",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": { "Express": 4, "NestJS": 4, "Django": 4, "Spring Boot": 5, "Laravel": 4, "Flask": 3 },
+        "technologies": { "Node.js": 5, "Python": 4, "Java": 4, "C#": 4, "Go": 4, "PostgreSQL": 3, "MongoDB": 3, "SQL": 2 },
+        "tools": { "Docker": 2, "Redis": 2, "GraphQL": 3, "REST API": 3 },
+        "keywords": { "Backend": 5, "API": 2, "Microservices": 3, "Database": 2 }
+      }
+    },
+    {
+      "title": "Full Stack Developer",
+      "minimum_score": 15,
+      "weights": {
+        "frameworks": { "React": 4, "Next.js": 4, "Express": 3, "NestJS": 3, "Django": 3, "Spring Boot": 3 },
+        "technologies": { "JavaScript": 3, "TypeScript": 3, "Node.js": 4, "Python": 3, "PostgreSQL": 3, "HTML": 1 },
+        "tools": { "Docker": 2, "Git": 1, "GraphQL": 2 },
+        "keywords": { "Full Stack": 6, "Full-Stack": 6, "Fullstack": 6, "End-to-End": 2 }
+      }
+    },
+    {
+      "title": "UI UX Designer",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": {},
+        "technologies": { "HTML": 1, "CSS": 1 },
+        "tools": { "Figma": 6, "Sketch": 5, "Adobe XD": 5, "InVision": 3, "Framer": 3 },
+        "keywords": { "UI": 4, "UX": 4, "User Experience": 4, "User Interface": 4, "Wireframing": 3, "Prototyping": 3, "User Research": 3, "Mockups": 2 }
+      }
+    },
+    {
+      "title": "Product Designer",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": {},
+        "technologies": {},
+        "tools": { "Figma": 5, "Sketch": 4, "Miro": 3, "Notion": 1 },
+        "keywords": { "Product Design": 6, "User Journey": 3, "Prototyping": 3, "Design System": 4, "User Research": 3, "UX": 3 }
+      }
+    },
+    {
+      "title": "AI Engineer",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": { "TensorFlow": 5, "PyTorch": 5, "Keras": 4, "LangChain": 5, "Hugging Face": 5 },
+        "technologies": { "Python": 5, "C++": 3, "CUDA": 3 },
+        "tools": { "Jupyter": 2, "Docker": 2, "Git": 1 },
+        "keywords": { "AI": 5, "Artificial Intelligence": 5, "LLM": 5, "Generative AI": 5, "NLP": 4, "Neural Networks": 3 }
+      }
+    },
+    {
+      "title": "Machine Learning Engineer",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": { "TensorFlow": 5, "PyTorch": 5, "Scikit-Learn": 4, "XGBoost": 3 },
+        "technologies": { "Python": 5, "R": 3, "Scala": 3, "SQL": 2 },
+        "tools": { "MLflow": 4, "Kubeflow": 4, "Spark": 3, "Docker": 2 },
+        "keywords": { "Machine Learning": 6, "ML": 4, "Model Deployment": 4, "Predictive Modeling": 3, "Deep Learning": 4 }
+      }
+    },
+    {
+      "title": "Data Analyst",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": {},
+        "technologies": { "SQL": 5, "Python": 4, "R": 4, "Excel": 3, "VBA": 2 },
+        "tools": { "Tableau": 5, "Power BI": 5, "Looker": 4, "Google Analytics": 3, "Pandas": 4 },
+        "keywords": { "Data Analysis": 5, "Dashboard": 3, "Reporting": 3, "Data Visualization": 4, "A/B Testing": 3 }
+      }
+    },
+    {
+      "title": "Data Scientist",
+      "minimum_score": 12,
+      "weights": {
+        "frameworks": { "Scikit-Learn": 4, "TensorFlow": 3, "PyTorch": 3 },
+        "technologies": { "Python": 5, "R": 4, "SQL": 4, "Scala": 2 },
+        "tools": { "Pandas": 4, "NumPy": 4, "Jupyter": 3, "Tableau": 2 },
+        "keywords": { "Data Science": 6, "Machine Learning": 4, "Statistical Modeling": 4, "Data Mining": 3, "Predictive Analytics": 4 }
+      }
+    },
+    {
+      "title": "DevOps Engineer",
+      "minimum_score": 12,
+      "weights": {
+        "frameworks": {},
+        "technologies": { "Linux": 4, "Bash": 3, "Python": 3, "Go": 2 },
+        "tools": { "Docker": 5, "Kubernetes": 5, "Terraform": 5, "Ansible": 4, "Jenkins": 4, "GitLab CI": 3, "GitHub Actions": 3 },
+        "keywords": { "DevOps": 6, "CI/CD": 5, "Automation": 3, "Infrastructure as Code": 5, "IaC": 4, "Deployment": 3 }
+      }
+    },
+    {
+      "title": "Cloud Engineer",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": {},
+        "technologies": { "Python": 3, "Bash": 3, "Linux": 4 },
+        "tools": { "AWS": 6, "Azure": 6, "GCP": 6, "Terraform": 5, "CloudFormation": 4, "Docker": 3, "Kubernetes": 3 },
+        "keywords": { "Cloud Architecture": 5, "Cloud Migration": 4, "Serverless": 4, "IaaS": 3, "PaaS": 3 }
+      }
+    },
+    {
+      "title": "QA Engineer",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": { "Selenium": 5, "Cypress": 5, "Playwright": 4, "Appium": 4, "JUnit": 3, "TestNG": 3, "Mocha": 2, "Jest": 2 },
+        "technologies": { "Java": 3, "Python": 3, "JavaScript": 3, "C#": 2 },
+        "tools": { "JIRA": 3, "Postman": 4, "Jenkins": 2 },
+        "keywords": { "QA": 5, "Quality Assurance": 5, "Testing": 4, "Automation": 4, "Test Cases": 4, "Manual Testing": 3, "Regression Testing": 3 }
+      }
+    },
+    {
+      "title": "Cyber Security Engineer",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": { "Metasploit": 4 },
+        "technologies": { "Python": 3, "Bash": 3, "Linux": 4, "C": 2 },
+        "tools": { "Wireshark": 4, "Nmap": 4, "Burp Suite": 4, "Splunk": 4 },
+        "keywords": { "Security": 5, "Cyber Security": 5, "Penetration Testing": 5, "Vulnerability Assessment": 4, "Incident Response": 4, "Firewall": 3, "Cryptography": 3 }
+      }
+    },
+    {
+      "title": "Salesforce Developer",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": { "Lightning Web Components": 5, "LWC": 5, "Aura": 3, "Visualforce": 3 },
+        "technologies": { "Apex": 6, "SOQL": 4, "SOSL": 4, "JavaScript": 2 },
+        "tools": { "Salesforce DX": 4, "VS Code": 1 },
+        "keywords": { "Salesforce": 6, "SFDC": 5, "Triggers": 3, "Sales Cloud": 3, "Service Cloud": 3 }
+      }
+    },
+    {
+      "title": "Java Developer",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": { "Spring Boot": 6, "Spring": 5, "Hibernate": 4, "Struts": 2 },
+        "technologies": { "Java": 6, "J2EE": 4, "SQL": 2 },
+        "tools": { "Maven": 3, "Gradle": 3, "Tomcat": 3, "JUnit": 2 },
+        "keywords": { "Microservices": 3, "Backend": 3, "REST API": 2 }
+      }
+    },
+    {
+      "title": "Python Developer",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": { "Django": 5, "Flask": 5, "FastAPI": 5, "Celery": 3 },
+        "technologies": { "Python": 6, "SQL": 2, "PostgreSQL": 2 },
+        "tools": { "Pytest": 3, "Docker": 2 },
+        "keywords": { "Backend": 3, "API": 2, "Scripting": 3, "Data Processing": 2 }
+      }
+    },
+    {
+      "title": ".NET Developer",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": { "ASP.NET": 5, ".NET Core": 5, "Entity Framework": 4, "Blazor": 3, "WPF": 2 },
+        "technologies": { "C#": 6, "VB.NET": 3, "SQL Server": 4, "T-SQL": 3 },
+        "tools": { "Visual Studio": 4, "Azure": 3, "TFS": 2, "NuGet": 2 },
+        "keywords": { ".NET": 6, "dotNET": 4, "Backend": 2, "Web API": 3 }
+      }
+    },
+    {
+      "title": "Product Manager",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": { "Agile": 5, "Scrum": 5, "Kanban": 3 },
+        "technologies": {},
+        "tools": { "JIRA": 4, "Confluence": 3, "Trello": 2, "Asana": 2, "Mixpanel": 3, "Google Analytics": 2 },
+        "keywords": { "Product Management": 6, "Product Manager": 6, "Roadmap": 5, "User Stories": 4, "Backlog": 4, "Stakeholder Management": 4, "Go-to-Market": 3, "GTM": 3 }
+      }
+    },
+    {
+      "title": "Business Analyst",
+      "minimum_score": 10,
+      "weights": {
+        "frameworks": { "Agile": 4, "Scrum": 3 },
+        "technologies": { "SQL": 3 },
+        "tools": { "JIRA": 3, "Excel": 4, "Visio": 3, "Tableau": 2, "Power BI": 2 },
+        "keywords": { "Business Analysis": 6, "Requirements Gathering": 5, "Process Mapping": 4, "UAT": 4, "User Acceptance Testing": 4, "Stakeholder": 3 }
+      }
+    },
+    {
+      "title": "HR",
+      "minimum_score": 8,
+      "weights": {
+        "frameworks": {},
+        "technologies": {},
+        "tools": { "Workday": 4, "BambooHR": 4, "Greenhouse": 4, "Lever": 4, "LinkedIn Recruiter": 4 },
+        "keywords": { "Human Resources": 6, "HR": 5, "Recruiting": 5, "Talent Acquisition": 5, "Onboarding": 4, "Employee Relations": 4, "Sourcing": 3 }
+      }
+    },
+    {
+      "title": "Marketing",
+      "minimum_score": 8,
+      "weights": {
+        "frameworks": {},
+        "technologies": { "HTML": 1 },
+        "tools": { "HubSpot": 5, "Salesforce": 3, "Google Analytics": 4, "Mailchimp": 3, "Marketo": 4, "Hootsuite": 3 },
+        "keywords": { "Marketing": 6, "SEO": 5, "SEM": 4, "Content Creation": 4, "Campaign Management": 4, "Social Media": 3, "Lead Generation": 4 }
+      }
+    },
+    {
+      "title": "Sales",
+      "minimum_score": 8,
+      "weights": {
+        "frameworks": {},
+        "technologies": {},
+        "tools": { "Salesforce": 6, "HubSpot": 4, "Outreach": 4, "ZoomInfo": 3, "LinkedIn Sales Navigator": 4 },
+        "keywords": { "Sales": 6, "Account Executive": 5, "B2B": 4, "B2C": 3, "Lead Generation": 4, "Cold Calling": 4, "Pipeline Management": 4, "Closing": 4 }
+      }
+    },
+    {
+      "title": "Customer Support",
+      "minimum_score": 8,
+      "weights": {
+        "frameworks": {},
+        "technologies": {},
+        "tools": { "Zendesk": 6, "Intercom": 5, "Freshdesk": 4, "Salesforce Service Cloud": 4, "Jira Service Desk": 3 },
+        "keywords": { "Customer Support": 6, "Customer Success": 5, "Technical Support": 5, "Ticketing": 4, "Troubleshooting": 4, "Client Relations": 3, "SLA": 3 }
+      }
+    }
+  ]
+}

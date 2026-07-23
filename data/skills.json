@@ -1,0 +1,19 @@
+[
+  "JavaScript", "TypeScript", "React", "Next.js", "Node.js", "Express", "NestJS", 
+  "Python", "Django", "Flask", "FastAPI", 
+  "Java", "Spring Boot", "Kotlin", 
+  "C#", ".NET", "ASP.NET", 
+  "Go", "Rust", "C++", "C", 
+  "Ruby", "Ruby on Rails", 
+  "PHP", "Laravel", "Symfony", 
+  "SQL", "MySQL", "PostgreSQL", "MongoDB", "Redis", "Elasticsearch", "Cassandra", "DynamoDB",
+  "HTML", "CSS", "Tailwind CSS", "SASS", "LESS", "Bootstrap",
+  "AWS", "Azure", "Google Cloud", "GCP", "Docker", "Kubernetes", "Terraform", "Ansible", "Jenkins", "GitHub Actions", "CI/CD",
+  "Git", "GitHub", "GitLab", "Bitbucket",
+  "Machine Learning", "Deep Learning", "TensorFlow", "PyTorch", "Scikit-Learn", "NLP", "Computer Vision",
+  "Data Analysis", "Pandas", "NumPy", "Matplotlib", "Tableau", "Power BI",
+  "Agile", "Scrum", "Kanban", "JIRA",
+  "Figma", "Sketch", "Adobe XD", "UI/UX",
+  "GraphQL", "REST API", "gRPC", "WebSockets",
+  "Linux", "Bash", "Shell Scripting"
+]

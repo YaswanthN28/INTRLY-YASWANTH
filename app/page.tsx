@@ -1,65 +1,55 @@
-import Image from "next/image";
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
+      {/* Navigation */}
+      <header className="container mx-auto px-4 h-20 flex items-center justify-between relative z-10 border-b border-border/40 backdrop-blur-md">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center font-bold text-primary-foreground">
+            I
+          </div>
+          <span className="font-bold text-xl tracking-tight">INTRLY</span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <nav className="flex items-center gap-4">
+          <Link href="/login" className="text-sm font-medium hover:text-primary transition-colors">
+            Sign In
+          </Link>
+          <Button asChild>
+            <Link href="/signup">Get Started</Link>
+          </Button>
+        </nav>
+      </header>
+
+      {/* Hero Section */}
+      <main className="flex-1 flex flex-col items-center justify-center text-center px-4 relative z-10 -mt-20 pt-20">
+        
+        {/* Background blobs for premium feel */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none" />
+        
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted border border-border/50 text-sm font-medium mb-8">
+          <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
+          Simulate real interviews instantly
+        </div>
+        
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight max-w-4xl bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70 mb-6">
+          Master your next interview with AI.
+        </h1>
+        
+        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10">
+          Upload your resume, get a personalized AI interviewer, and practice real-world scenarios. No fluff, just realistic preparation.
+        </p>
+        
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <Button size="lg" className="h-12 px-8 text-base shadow-xl shadow-primary/20" asChild>
+            <Link href="/signup">Start Practicing Now</Link>
+          </Button>
+          <Button size="lg" variant="outline" className="h-12 px-8 text-base bg-background/50 backdrop-blur" asChild>
+            <Link href="#features">See how it works</Link>
+          </Button>
         </div>
       </main>
     </div>
-  );
+  )
 }

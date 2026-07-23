@@ -1,0 +1,57 @@
+[
+  {
+    "id": "fe_tc_001",
+    "role": ["Frontend Developer", "Full Stack Developer"],
+    "category": "Technical",
+    "experience_level": ["Junior", "Mid", "Senior"],
+    "difficulty": 2,
+    "question": "What is the difference between let, const, and var in JavaScript?",
+    "expected_keywords": ["scope", "block", "hoisting", "reassignment", "closure"],
+    "follow_up_questions": ["Can you explain what hoisting is with an example?"],
+    "score_weight": 3
+  },
+  {
+    "id": "fe_tc_002",
+    "role": ["Frontend Developer", "Full Stack Developer"],
+    "category": "Technical",
+    "experience_level": ["Mid", "Senior"],
+    "difficulty": 4,
+    "question": "Can you explain the Virtual DOM in React and how it improves performance?",
+    "expected_keywords": ["DOM", "reconciliation", "diffing", "memory", "state", "render", "batching"],
+    "follow_up_questions": ["How does React handle lists and why are keys important?"],
+    "score_weight": 5
+  },
+  {
+    "id": "fe_tc_003",
+    "role": ["Frontend Developer", "Full Stack Developer"],
+    "category": "Technical",
+    "experience_level": ["Junior", "Mid", "Senior"],
+    "difficulty": 3,
+    "question": "Explain the CSS Box Model.",
+    "expected_keywords": ["margin", "border", "padding", "content", "box-sizing"],
+    "follow_up_questions": ["What is the difference between border-box and content-box?"],
+    "score_weight": 3
+  },
+  {
+    "id": "fe_sc_001",
+    "role": ["Frontend Developer", "Full Stack Developer", "UI UX Designer"],
+    "category": "Scenario Based",
+    "experience_level": ["Mid", "Senior"],
+    "difficulty": 4,
+    "question": "A user reports that the web application is loading very slowly. How would you debug and optimize it?",
+    "expected_keywords": ["lighthouse", "network tab", "lazy loading", "code splitting", "minification", "caching", "images"],
+    "follow_up_questions": ["If the issue is specifically a massive third-party library, what are your options?"],
+    "score_weight": 5
+  },
+  {
+    "id": "fe_ps_001",
+    "role": ["Frontend Developer", "Full Stack Developer"],
+    "category": "Problem Solving",
+    "experience_level": ["Mid", "Senior"],
+    "difficulty": 5,
+    "question": "How would you manage global state in a complex Next.js application?",
+    "expected_keywords": ["context", "redux", "zustand", "prop drilling", "server components", "client components"],
+    "follow_up_questions": ["When would you choose Zustand over React Context?"],
+    "score_weight": 5
+  }
+]

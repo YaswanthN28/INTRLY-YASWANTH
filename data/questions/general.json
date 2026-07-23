@@ -1,0 +1,35 @@
+[
+  {
+    "id": "gn_tc_001",
+    "role": ["All"],
+    "category": "Technical",
+    "experience_level": ["Junior", "Mid", "Senior"],
+    "difficulty": 2,
+    "question": "Explain the concept of Git version control. What is the difference between merging and rebasing?",
+    "expected_keywords": ["git", "history", "commit", "branch", "merge", "rebase", "fast-forward"],
+    "follow_up_questions": ["When would you prefer a merge over a rebase?"],
+    "score_weight": 3
+  },
+  {
+    "id": "gn_tc_002",
+    "role": ["All"],
+    "category": "Technical",
+    "experience_level": ["Mid", "Senior"],
+    "difficulty": 3,
+    "question": "What is CI/CD, and why is it important in modern software development?",
+    "expected_keywords": ["continuous integration", "continuous deployment", "automation", "testing", "pipeline", "agile"],
+    "follow_up_questions": ["Can you describe a CI/CD pipeline you've worked with?"],
+    "score_weight": 4
+  },
+  {
+    "id": "gn_ps_001",
+    "role": ["All"],
+    "category": "Problem Solving",
+    "experience_level": ["Mid", "Senior"],
+    "difficulty": 4,
+    "question": "You discover a critical bug in production right after a deployment. Walk me through your immediate actions.",
+    "expected_keywords": ["rollback", "logs", "monitoring", "communication", "revert", "hotfix", "post-mortem"],
+    "follow_up_questions": ["How do you ensure this doesn't happen again?"],
+    "score_weight": 5
+  }
+]

@@ -1,0 +1,57 @@
+[
+  {
+    "id": "be_tc_001",
+    "role": ["Backend Developer", "Full Stack Developer"],
+    "category": "Technical",
+    "experience_level": ["Junior", "Mid", "Senior"],
+    "difficulty": 3,
+    "question": "What is the difference between SQL and NoSQL databases?",
+    "expected_keywords": ["relational", "document", "schema", "acid", "scaling", "joins", "normalization"],
+    "follow_up_questions": ["When would you specifically choose MongoDB over PostgreSQL?"],
+    "score_weight": 3
+  },
+  {
+    "id": "be_tc_002",
+    "role": ["Backend Developer", "Full Stack Developer", "Cloud Engineer"],
+    "category": "Technical",
+    "experience_level": ["Mid", "Senior"],
+    "difficulty": 4,
+    "question": "Explain the concept of RESTful API design. What are the key constraints?",
+    "expected_keywords": ["stateless", "client-server", "cacheable", "uniform interface", "http methods", "resources"],
+    "follow_up_questions": ["How do you handle versioning in a REST API?"],
+    "score_weight": 4
+  },
+  {
+    "id": "be_tc_003",
+    "role": ["Backend Developer", "Full Stack Developer"],
+    "category": "Technical",
+    "experience_level": ["Mid", "Senior"],
+    "difficulty": 5,
+    "question": "What are microservices, and what are the main challenges when moving from a monolith to microservices?",
+    "expected_keywords": ["distributed", "network latency", "data consistency", "deployment", "monitoring", "saga", "eventual consistency"],
+    "follow_up_questions": ["How do you handle distributed transactions across multiple microservices?"],
+    "score_weight": 5
+  },
+  {
+    "id": "be_sc_001",
+    "role": ["Backend Developer", "Full Stack Developer", "DevOps Engineer"],
+    "category": "Scenario Based",
+    "experience_level": ["Mid", "Senior"],
+    "difficulty": 5,
+    "question": "Your database queries are running very slowly and bringing down the application. How do you troubleshoot and fix this?",
+    "expected_keywords": ["indexes", "explain analyze", "n+1 problem", "caching", "read replicas", "connection pooling"],
+    "follow_up_questions": ["What if the query is already indexed but still slow due to millions of rows?"],
+    "score_weight": 5
+  },
+  {
+    "id": "be_ps_001",
+    "role": ["Backend Developer"],
+    "category": "Problem Solving",
+    "experience_level": ["Junior", "Mid", "Senior"],
+    "difficulty": 3,
+    "question": "How do you securely store user passwords in a database?",
+    "expected_keywords": ["hashing", "salt", "bcrypt", "argon2", "pbkdf2", "plaintext"],
+    "follow_up_questions": ["Why is hashing better than encryption for passwords?"],
+    "score_weight": 4
+  }
+]

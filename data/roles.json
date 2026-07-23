@@ -1,0 +1,11 @@
+{
+  "Frontend Developer": ["React", "JavaScript", "TypeScript", "Next.js", "HTML", "CSS", "Tailwind CSS", "Vue", "Angular"],
+  "Backend Developer": ["Node.js", "Python", "Java", "C#", "Go", "Ruby", "PostgreSQL", "MongoDB", "Express", "Django"],
+  "Full Stack Developer": ["React", "Node.js", "JavaScript", "TypeScript", "Python", "Java", "PostgreSQL", "HTML", "CSS"],
+  "Data Scientist": ["Python", "Machine Learning", "Data Analysis", "Pandas", "NumPy", "TensorFlow", "PyTorch", "SQL"],
+  "DevOps Engineer": ["AWS", "Docker", "Kubernetes", "CI/CD", "Linux", "Terraform", "Jenkins", "Ansible"],
+  "UI/UX Designer": ["Figma", "Sketch", "Adobe XD", "Wireframing", "Prototyping", "User Research", "UI/UX"],
+  "QA Engineer": ["Testing", "Selenium", "Cypress", "Jest", "Automation", "QA", "Quality Assurance"],
+  "Cloud Engineer": ["AWS", "Azure", "GCP", "Cloud", "Architecture", "Terraform"],
+  "Cyber Security Analyst": ["Security", "Penetration Testing", "Network Security", "Cryptography", "Firewalls"]
+}
