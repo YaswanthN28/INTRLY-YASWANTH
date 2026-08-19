@@ -285,9 +285,10 @@ export function InterviewClient({ interviewId, questions }: InterviewClientProps
           <div className="flex-1 cursor-grab active:cursor-grabbing">
             <Canvas shadows camera={{ position: [0, 1.5, 4], fov: 50 }}>
               <color attach="background" args={["#111111"]} />
-              <ambientLight intensity={0.5} />
-              <directionalLight position={[5, 5, 5]} intensity={1.5} castShadow />
-              <directionalLight position={[-5, 5, -5]} intensity={0.5} color="#4fd1c5" />
+              <ambientLight intensity={0.3} color="#ffffff" />
+              <directionalLight position={[5, 10, 5]} intensity={1.2} castShadow color="#ffffff" shadow-mapSize={[1024, 1024]} />
+              <directionalLight position={[-5, 5, -5]} intensity={1.5} color="#8b5cf6" />
+              <pointLight position={[0, 2, 2]} intensity={0.8} color="#4fd1c5" />
               <Environment preset="city" />
               <Avatar isSpeaking={isAvatarSpeaking} emotion={currentEmotion} interviewerType={interviewer} />
               <ContactShadows position={[0, -0.6, 0]} opacity={0.5} scale={10} blur={2} far={4} />
