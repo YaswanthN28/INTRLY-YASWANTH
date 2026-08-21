@@ -37,7 +37,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   const detectedRole = interview.resumes?.raw_json?.detectedRole || "Developer"
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-12 font-sans" id="report-container">
+    <div className="max-w-6xl mx-auto space-y-8 pb-12 font-sans animate-in fade-in slide-in-from-bottom-4 duration-700" id="report-container">
       
       {/* HEADER */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border shadow-sm">

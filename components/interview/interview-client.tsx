@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff,
   ChevronRight, MessageSquare, Volume2, VolumeX,
-  Clock, Loader2, UserCheck
+  Clock, Loader2, UserCheck, CheckCircle2
 } from "lucide-react"
 import { useTTS, useSTT } from "@/hooks/interview/use-speech"
 import { useInterviewEngine } from "@/engine/conversation/InterviewEngine"
@@ -255,26 +255,30 @@ export function InterviewClient({ interviewId, questions }: InterviewClientProps
       </header>
 
       {/* MAIN STAGE */}
-      <main className="flex-1 p-4 md:p-6 flex flex-col md:flex-row gap-4 overflow-hidden">
+      <main className="flex-1 p-4 md:p-6 flex flex-col md:flex-row gap-6 overflow-hidden relative z-0">
+        {/* Subtle Background Glows */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
+
         {/* Left Column: Avatar */}
-        <div className="flex-1 bg-[#111111] rounded-2xl overflow-hidden border border-white/5 relative flex flex-col shadow-2xl">
-          <div className="absolute top-4 left-4 z-10">
+        <div className="flex-[1.5] bg-black/40 backdrop-blur-xl rounded-3xl overflow-hidden border border-white/10 relative flex flex-col shadow-2xl">
+          <div className="absolute top-6 left-6 z-10">
             <AnimatePresence mode="wait">
               <motion.div
                 key={phase}
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md border text-xs font-medium
+                className={`flex items-center gap-2.5 px-4 py-2 rounded-full backdrop-blur-md border text-xs font-semibold tracking-wide
                   ${phase === "avatar_speaking"
                     ? "bg-primary/20 border-primary/30 text-primary"
                     : phase === "user_answering"
                     ? "bg-green-500/20 border-green-500/30 text-green-400"
                     : "bg-white/10 border-white/10 text-white/60"}`}
               >
-                <span className={`w-2 h-2 rounded-full ${phase === "avatar_speaking" ? "bg-primary animate-pulse" : phase === "user_answering" ? "bg-green-500 animate-pulse" : "bg-white/40"}`} />
+                <span className={`w-2 h-2 rounded-full ${phase === "avatar_speaking" ? "bg-primary animate-pulse" : phase === "user_answering" ? "bg-green-500 animate-[pulse_1s_infinite]" : "bg-white/40"}`} />
                 {phase === "avatar_speaking" 
-                  ? `${interviewer === 'aarav' ? 'Aarav' : 'Reshma'} Speaking...` 
+                  ? `${interviewer === 'aarav' ? 'Aarav' : 'Reshma'} Speaking` 
                   : phase === "user_answering" 
                   ? "Your Turn — Speak Now" 
                   : "Processing..."}
@@ -284,28 +288,28 @@ export function InterviewClient({ interviewId, questions }: InterviewClientProps
 
           <div className="flex-1 cursor-grab active:cursor-grabbing">
             <Canvas shadows camera={{ position: [0, 1.5, 4], fov: 50 }}>
-              <color attach="background" args={["#111111"]} />
-              <ambientLight intensity={0.3} color="#ffffff" />
+              <color attach="background" args={["transparent"]} />
+              <ambientLight intensity={0.4} color="#ffffff" />
               <directionalLight position={[5, 10, 5]} intensity={1.2} castShadow color="#ffffff" shadow-mapSize={[1024, 1024]} />
               <directionalLight position={[-5, 5, -5]} intensity={1.5} color="#8b5cf6" />
-              <pointLight position={[0, 2, 2]} intensity={0.8} color="#4fd1c5" />
+              <pointLight position={[0, 2, 2]} intensity={1} color="#4fd1c5" />
               <Environment preset="city" />
               <Avatar isSpeaking={isAvatarSpeaking} emotion={currentEmotion} interviewerType={interviewer} />
-              <ContactShadows position={[0, -0.6, 0]} opacity={0.5} scale={10} blur={2} far={4} />
+              <ContactShadows position={[0, -0.6, 0]} opacity={0.6} scale={10} blur={2.5} far={4} />
               <OrbitControls enableZoom={false} enablePan={false} maxPolarAngle={Math.PI / 2} minPolarAngle={Math.PI / 3} />
             </Canvas>
           </div>
 
           {/* Subtitles Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+          <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
             <AnimatePresence mode="wait">
               <motion.p
                 key={currentQuestionIndex}
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-                className="text-sm leading-relaxed text-gray-200 text-center max-w-lg mx-auto"
+                transition={{ duration: 0.5 }}
+                className="text-base md:text-lg leading-relaxed text-gray-100 text-center max-w-2xl mx-auto font-medium"
               >
                 {currentQuestion.question}
               </motion.p>
@@ -314,42 +318,52 @@ export function InterviewClient({ interviewId, questions }: InterviewClientProps
         </div>
 
         {/* Right Column */}
-        <div className="w-full md:w-80 lg:w-96 flex flex-col gap-4">
-          <div className="aspect-video w-full rounded-2xl overflow-hidden bg-[#111111] border border-white/5 shrink-0">
+        <div className="w-full md:w-80 lg:w-[400px] flex flex-col gap-6 relative z-10">
+          <div className="aspect-video w-full rounded-3xl overflow-hidden bg-black/40 backdrop-blur-xl border border-white/10 shrink-0 shadow-xl relative group">
             <WebcamPreview isCameraOn={isCameraOn} />
+            {!isCameraOn && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white/50 backdrop-blur-sm">
+                <VideoOff className="w-8 h-8 mb-2 opacity-50" />
+                <span className="text-xs font-medium tracking-wide">Camera Disabled</span>
+              </div>
+            )}
           </div>
 
           {/* Transcript Panel */}
-          <div className="flex-1 bg-[#111111] rounded-2xl border border-white/5 p-5 flex flex-col overflow-hidden min-h-0">
-            <div className="flex items-center gap-2 mb-4 text-muted-foreground border-b border-white/5 pb-3 shrink-0">
-              <MessageSquare className="w-4 h-4" />
-              <span className="text-sm font-medium">Live Transcript</span>
+          <div className="flex-1 bg-black/40 backdrop-blur-xl rounded-3xl border border-white/10 p-6 flex flex-col overflow-hidden min-h-0 shadow-xl">
+            <div className="flex items-center gap-2 mb-5 text-muted-foreground border-b border-white/10 pb-4 shrink-0">
+              <MessageSquare className="w-4 h-4 text-primary" />
+              <span className="text-sm font-semibold text-gray-200">Live Transcript</span>
               {isListening && (
-                <span className="ml-auto flex items-center gap-1.5 text-xs text-red-400">
+                <span className="ml-auto flex items-center gap-1.5 text-xs text-red-400 font-medium">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Recording
                 </span>
               )}
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-1 space-y-4 text-sm">
-              <div className="space-y-1.5">
-                <span className="text-xs text-primary font-semibold uppercase tracking-wider">Interviewer</span>
-                <p className="leading-relaxed text-gray-300">{currentQuestion.question}</p>
+            <div className="flex-1 overflow-y-auto pr-2 space-y-6 text-sm scrollbar-thin scrollbar-thumb-white/10">
+              <div className="space-y-2">
+                <span className="text-[10px] text-primary font-bold uppercase tracking-widest flex items-center gap-2">
+                  <div className="w-4 h-px bg-primary/50"></div> Interviewer
+                </span>
+                <p className="leading-relaxed text-gray-200 pl-6">{currentQuestion.question}</p>
               </div>
 
               {(phase === "user_answering" || phase === "saving") && (
-                <div className="space-y-1.5">
-                  <span className="text-xs text-green-400 font-semibold uppercase tracking-wider">You</span>
+                <div className="space-y-2">
+                  <span className="text-[10px] text-green-400 font-bold uppercase tracking-widest flex items-center gap-2">
+                     <div className="w-4 h-px bg-green-500/50"></div> You
+                  </span>
                   {liveTranscript ? (
-                    <div className="space-y-2">
-                      <p className="leading-relaxed text-gray-200">{liveTranscript}</p>
+                    <div className="space-y-3 pl-6">
+                      <p className="leading-relaxed text-gray-100">{liveTranscript}</p>
                       <AnimatePresence>
                         {autoSubmitCountdown !== null && (
                           <motion.div 
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="text-xs text-primary/80 animate-pulse font-medium"
+                            className="text-xs text-primary/80 animate-pulse font-medium bg-primary/10 inline-block px-2 py-1 rounded-md"
                           >
                             Auto-submitting in {autoSubmitCountdown}...
                           </motion.div>
@@ -357,7 +371,7 @@ export function InterviewClient({ interviewId, questions }: InterviewClientProps
                       </AnimatePresence>
                     </div>
                   ) : (
-                    <p className="italic text-gray-500 animate-pulse">
+                    <p className="italic text-gray-500 animate-pulse pl-6 text-xs">
                       {sttSupported ? "Listening for your voice..." : "Microphone transcription not supported in this browser."}
                     </p>
                   )}
@@ -365,8 +379,11 @@ export function InterviewClient({ interviewId, questions }: InterviewClientProps
               )}
 
               {Object.keys(transcripts).length > 0 && (
-                <div className="pt-3 border-t border-white/5">
-                  <p className="text-xs text-muted-foreground mb-2">{Object.keys(transcripts).length} previous answer(s) saved ✓</p>
+                <div className="pt-4 border-t border-white/5 mt-4">
+                  <p className="text-[11px] font-medium text-white/30 uppercase tracking-wider flex items-center gap-2">
+                    <CheckCircle2 className="w-3 h-3 text-green-500/50" />
+                    {Object.keys(transcripts).length} previous answer(s) saved
+                  </p>
                 </div>
               )}
             </div>
@@ -375,55 +392,56 @@ export function InterviewClient({ interviewId, questions }: InterviewClientProps
       </main>
 
       {/* CONTROLS */}
-      <footer className="h-20 border-t border-white/10 flex items-center justify-center gap-3 bg-black/80 backdrop-blur-md px-6 shrink-0">
-        <Button
-          variant="outline" size="icon"
-          className={`rounded-full w-12 h-12 border-white/10 ${!isMicOn ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-white/5 hover:bg-white/10"}`}
-          onClick={() => {
-            if (isMicOn) { stopListening() } else if (phase === "user_answering") { startListening() }
-            setIsMicOn(!isMicOn)
-          }}
-        >
-          {isMicOn ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-        </Button>
+      <footer className="h-24 flex items-center justify-center gap-4 bg-transparent backdrop-blur-none px-6 shrink-0 relative z-20 pb-4">
+        <div className="flex items-center gap-3 bg-black/60 backdrop-blur-2xl p-2.5 rounded-full border border-white/10 shadow-2xl">
+          <Button
+            variant="outline" size="icon"
+            className={`rounded-full w-12 h-12 border-transparent transition-all duration-300 ${!isMicOn ? "bg-red-500 text-white hover:bg-red-600 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "bg-white/10 text-white hover:bg-white/20"}`}
+            onClick={() => {
+              if (isMicOn) { stopListening() } else if (phase === "user_answering") { startListening() }
+              setIsMicOn(!isMicOn)
+            }}
+          >
+            {isMicOn ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+          </Button>
 
-        <Button
-          variant="outline" size="icon"
-          className={`rounded-full w-12 h-12 border-white/10 ${!isCameraOn ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-white/5 hover:bg-white/10"}`}
-          onClick={() => setIsCameraOn(!isCameraOn)}
-        >
-          {isCameraOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
-        </Button>
+          <Button
+            variant="outline" size="icon"
+            className={`rounded-full w-12 h-12 border-transparent transition-all duration-300 ${!isCameraOn ? "bg-red-500 text-white hover:bg-red-600 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "bg-white/10 text-white hover:bg-white/20"}`}
+            onClick={() => setIsCameraOn(!isCameraOn)}
+          >
+            {isCameraOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+          </Button>
 
-        <Button
-          variant="outline" size="icon"
-          className={`rounded-full w-12 h-12 border-white/10 ${!isTTSOn ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-white/5 hover:bg-white/10"}`}
-          onClick={() => { setIsTTSOn(!isTTSOn); if (isTTSOn) stopTTS() }}
-          title="Toggle avatar voice"
-        >
-          {isTTSOn ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-        </Button>
+          <Button
+            variant="outline" size="icon"
+            className={`rounded-full w-12 h-12 border-transparent transition-all duration-300 ${!isTTSOn ? "bg-amber-500 text-white hover:bg-amber-600 shadow-[0_0_15px_rgba(245,158,11,0.3)]" : "bg-white/10 text-white hover:bg-white/20"}`}
+            onClick={() => { setIsTTSOn(!isTTSOn); if (isTTSOn) stopTTS() }}
+            title="Toggle avatar voice"
+          >
+            {isTTSOn ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+          </Button>
 
-        <div className="w-px h-8 bg-white/10 mx-1" />
+          <div className="w-px h-8 bg-white/20 mx-1" />
 
-        <Button variant="destructive" className="rounded-full px-5 gap-2" onClick={handleEndInterview}>
-          <PhoneOff className="w-4 h-4" /> End
-        </Button>
+          <Button variant="destructive" className="rounded-full w-12 h-12 p-0 flex items-center justify-center hover:scale-105 transition-transform" onClick={handleEndInterview} title="End Interview">
+            <PhoneOff className="w-5 h-5" />
+          </Button>
 
-        <div className="w-px h-8 bg-white/10 mx-1" />
+          <div className="w-px h-8 bg-white/20 mx-1" />
 
-        <Button
-          onClick={saveAndAdvance}
-          disabled={phase === "avatar_speaking" || phase === "saving"}
-          variant="secondary"
-          className="rounded-full px-6 gap-2"
-        >
-          {phase === "saving" ? (
-            <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</>
-          ) : (
-            <>Submit Manually</>
-          )}
-        </Button>
+          <Button
+            onClick={saveAndAdvance}
+            disabled={phase === "avatar_speaking" || phase === "saving"}
+            className="rounded-full px-6 h-12 gap-2 bg-white text-black hover:bg-gray-200 font-semibold transition-all disabled:opacity-50"
+          >
+            {phase === "saving" ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Saving</>
+            ) : (
+              <>Submit & Next <ChevronRight className="w-4 h-4" /></>
+            )}
+          </Button>
+        </div>
       </footer>
     </div>
   )

@@ -41,11 +41,11 @@ export default async function InterviewHistoryPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-12">
+    <div className="max-w-[1200px] mx-auto space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Interview History</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">Interview History</h1>
           <p className="text-muted-foreground mt-1">{interviews?.length || 0} interview{interviews?.length !== 1 ? "s" : ""} completed</p>
         </div>
         <Link href="/dashboard">

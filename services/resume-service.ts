@@ -33,17 +33,33 @@ export const resumeService = {
     const fileUrl = uploadData.path
 
     // 3. Save metadata to DB
-    const { data: dbData, error: dbError } = await supabase
+    // We try to set source_type to 'upload'. If the column doesn't exist yet, we will fallback safely below.
+    const dbRecord = {
+      user_id: userId,
+      file_url: fileUrl,
+      file_name: file.name,
+      file_type: file.type || fileExt,
+      file_size: file.size,
+      status: 'ready',
+      title: 'Uploaded Resume'
+    }
+
+    let { data: dbData, error: dbError } = await supabase
       .from('resumes')
-      .insert({
-        user_id: userId,
-        file_url: fileUrl,
-        file_name: file.name,
-        file_type: file.type || fileExt,
-        file_size: file.size,
-      })
+      .insert({ ...dbRecord, source_type: 'upload' } as any)
       .select()
       .single()
+
+    // Fallback if source_type column migration hasn't run yet
+    if (dbError && dbError.message.includes('source_type')) {
+      const retry = await supabase
+        .from('resumes')
+        .insert(dbRecord)
+        .select()
+        .single()
+      dbData = retry.data
+      dbError = retry.error
+    }
 
     if (dbError) {
       // rollback storage upload

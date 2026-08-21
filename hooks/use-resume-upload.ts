@@ -12,23 +12,25 @@ export function useResume(userId: string) {
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      // 1. Upload to Supabase Storage and create DB record
-      const resume = await resumeService.uploadResume(file, userId)
-      
-      // 2. Trigger the Parsing API route
+      // 1. Upload via secure server-side API endpoint for validation
       const formData = new FormData()
-      formData.append('file', file)
-      formData.append('resumeId', resume.id)
-      
-      const response = await fetch('/api/resume/parse', {
+      formData.append("resume", file)
+
+      const response = await fetch('/api/resume/upload', {
         method: 'POST',
         body: formData,
       })
       
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Parsing failed on the server')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Upload failed on the server')
       }
+      
+      const data = await response.json()
+      
+      // 2. Fetch the updated full resume record
+      const resume = await resumeService.getLatestResume(userId)
+      if (!resume) throw new Error("Resume record not found after upload")
       
       return resume
     },
