@@ -3,70 +3,106 @@
 import React, { useState, useEffect, useRef } from "react"
 import { ResumePreview } from "./resume-preview"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Save, Download, AlertCircle, CheckCircle2, FileText, FileCode } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Save, AlertCircle, Plus, Trash2, LayoutTemplate } from "lucide-react"
 import { saveResume } from "@/app/(dashboard)/resume/create/actions"
-import dynamic from "next/dynamic"
 
-const LatexEditor = dynamic(() => import("./latex-editor").then(mod => mod.LatexEditor), { ssr: false })
+type Experience = { id: string; role: string; company: string; year: string; details: string }
+type Education = { id: string; degree: string; university: string; year: string }
 
-const DEFAULT_LATEX = `\\documentclass[11pt]{article}
+type ResumeFormState = {
+  name: string
+  role: string
+  email: string
+  phone: string
+  summary: string
+  experience: Experience[]
+  education: Education[]
+  skills: string
+}
 
+const DEFAULT_STATE: ResumeFormState = {
+  name: "Jane Doe",
+  role: "Software Engineer",
+  email: "jane@example.com",
+  phone: "+1 555-0100",
+  summary: "Results-driven Software Engineer with 4 years of experience building scalable web applications. Passionate about clean code, robust architecture, and user-centric design.",
+  experience: [
+    {
+      id: "1",
+      role: "Senior Frontend Developer",
+      company: "Tech Solutions Inc.",
+      year: "2021 - Present",
+      details: "Led the migration to Next.js, improving page load speeds by 40%.\nMentored junior developers and established code review guidelines."
+    }
+  ],
+  education: [
+    {
+      id: "1",
+      degree: "B.S. Computer Science",
+      university: "State University",
+      year: "2017 - 2021"
+    }
+  ],
+  skills: "JavaScript, TypeScript, React, Node.js, Next.js, Tailwind CSS"
+}
+
+const generateLatex = (data: ResumeFormState) => {
+  return `\\documentclass[11pt]{article}
 \\usepackage[margin=0.7in]{geometry}
 \\usepackage{enumitem}
 \\usepackage{hyperref}
-
 \\begin{document}
-
 \\begin{center}
-{\\LARGE \\textbf{Your Name}}\\\\
-Software Engineer\\\\
-email@example.com \\,|\\, +91 00000 00000
+{\\LARGE \\textbf{${data.name || 'Your Name'}}}\\\\
+${data.role || 'Professional Title'}\\\\
+${data.email || 'email@example.com'} \\,|\\, ${data.phone || 'Phone Number'}
 \\end{center}
 
 \\section*{Summary}
-
-Professional summary goes here.
+${data.summary || 'Professional summary goes here.'}
 
 \\section*{Experience}
-
-\\textbf{Software Engineer} \\hfill 2024 -- Present\\\\
-Company Name
-
+${data.experience.length ? data.experience.map(exp => `\\textbf{${exp.role || 'Role'}} \\hfill ${exp.year || 'Year'}\\\\
+${exp.company || 'Company'}
 \\begin{itemize}[leftmargin=*]
-    \\item Achievement or responsibility.
-    \\item Achievement or responsibility.
+${exp.details.split('\\n').filter(d => d.trim()).map(d => `\\item ${d}`).join('\\n')}
 \\end{itemize}
+`).join('\\n') : '\\textit{No experience added yet.}'}
 
 \\section*{Skills}
-
-JavaScript, TypeScript, React, Node.js
+${data.skills || 'Your skills go here.'}
 
 \\section*{Education}
-
-\\textbf{Bachelor of Technology in Computer Science} \\hfill 2020 -- 2024\\\\
-University Name
-
+${data.education.length ? data.education.map(edu => `\\textbf{${edu.degree || 'Degree'}} \\hfill ${edu.year || 'Year'}\\\\
+${edu.university || 'University'}`).join('\\n\\vspace{1em}\\n') : '\\textit{No education added yet.}'}
 \\end{document}`
+}
 
 export function ResumeBuilder() {
-  const [latex, setLatex] = useState(DEFAULT_LATEX)
+  const [form, setForm] = useState<ResumeFormState>(DEFAULT_STATE)
   const [isCompiling, setIsCompiling] = useState(false)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [atsScore, setAtsScore] = useState<any>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  
+  // Track active view on mobile
+  const [activeTab, setActiveTab] = useState<'editor'|'preview'>('editor')
 
   // Debounced compilation
   useEffect(() => {
+    const latex = generateLatex(form)
     const compileTimer = setTimeout(() => {
       compileLatex(latex)
-    }, 1000)
+    }, 1500)
 
     return () => clearTimeout(compileTimer)
-  }, [latex])
+  }, [form])
 
-  // Track the latest compilation request to avoid race conditions
-  const currentCompileRef = React.useRef(0)
+  const currentCompileRef = useRef(0)
 
   const compileLatex = async (code: string) => {
     const requestId = ++currentCompileRef.current
@@ -80,192 +116,294 @@ export function ResumeBuilder() {
         body: JSON.stringify({ latex: code })
       })
 
-      // If another compilation started after this one, ignore this response
       if (requestId !== currentCompileRef.current) return
 
       if (!res.ok) {
         const errorData = await res.json()
-        throw new Error(errorData?.error?.message || errorData?.error?.type || "Failed to compile")
+        throw new Error(errorData?.error?.message || errorData?.error?.type || "Failed to compile document")
       }
 
       const blob = await res.blob()
       const newPdfUrl = URL.createObjectURL(blob)
       
-      // Cleanup previous blob URL to prevent memory leaks
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl)
-      }
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl)
       
       setPdfUrl(newPdfUrl)
-
-      const atsHeader = res.headers.get("X-ATS-Score")
-      if (atsHeader) {
-        try {
-          setAtsScore(JSON.parse(atsHeader))
-        } catch (e) {}
-      }
     } catch (err: any) {
       setError(err.message)
-      // We don't clear the pdfUrl on error so the user can still see their last working state
-      // but we do show the error message. Wait, instructions say:
-      // "Do not display the old placeholder PDF in any of these states."
-      // If it's an error, error takes precedence in UI.
     } finally {
       setIsCompiling(false)
     }
   }
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl)
-      }
-    }
-  }, [pdfUrl])
-
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   const handleSave = async () => {
+    setIsSaving(true)
     try {
-      await saveResume(latex, pdfUrl, atsScore?.score)
-      alert("Your resume has been saved successfully.")
+      const latex = generateLatex(form)
+      await saveResume(latex, pdfUrl, null)
+      alert("Resume saved successfully.")
     } catch (err: any) {
       alert("Error saving resume: " + err.message)
+    } finally {
+      setIsSaving(false)
     }
   }
 
-  const handleDownloadLatex = () => {
-    const blob = new Blob([latex], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "intrly_resume.tex"
-    a.click()
-    URL.revokeObjectURL(url)
+  // --- Handlers ---
+  const updateForm = (key: keyof ResumeFormState, value: any) => {
+    setForm(prev => ({ ...prev, [key]: value }))
   }
 
-  if (!mounted) return null;
+  const addExperience = () => {
+    setForm(prev => ({
+      ...prev,
+      experience: [...prev.experience, { id: Date.now().toString(), role: "", company: "", year: "", details: "" }]
+    }))
+  }
+
+  const updateExperience = (id: string, field: keyof Experience, value: string) => {
+    setForm(prev => ({
+      ...prev,
+      experience: prev.experience.map(exp => exp.id === id ? { ...exp, [field]: value } : exp)
+    }))
+  }
+
+  const removeExperience = (id: string) => {
+    setForm(prev => ({
+      ...prev,
+      experience: prev.experience.filter(exp => exp.id !== id)
+    }))
+  }
+
+  const addEducation = () => {
+    setForm(prev => ({
+      ...prev,
+      education: [...prev.education, { id: Date.now().toString(), degree: "", university: "", year: "" }]
+    }))
+  }
+
+  const updateEducation = (id: string, field: keyof Education, value: string) => {
+    setForm(prev => ({
+      ...prev,
+      education: prev.education.map(edu => edu.id === id ? { ...edu, [field]: value } : edu)
+    }))
+  }
+
+  const removeEducation = (id: string) => {
+    setForm(prev => ({
+      ...prev,
+      education: prev.education.filter(edu => edu.id !== id)
+    }))
+  }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] gap-4 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Resume Builder</h1>
-          <p className="text-muted-foreground text-sm mt-1">Paste or write LaTeX code. Preview generates automatically.</p>
+    <div className="flex flex-col h-full bg-background/50">
+      
+      {/* Builder Toolbar */}
+      <div className="shrink-0 h-16 border-b border-border/50 bg-card flex items-center justify-between px-6 z-10 sticky top-0">
+        <div className="flex items-center gap-4">
+          <div className="p-2 bg-primary/10 rounded-lg">
+             <LayoutTemplate className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="font-bold text-foreground">Standard Professional</h2>
+            <p className="text-xs text-muted-foreground">Auto-saving structured template</p>
+          </div>
         </div>
+        
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={() => compileLatex(latex)} disabled={isCompiling} className="border-border/50 bg-background hover:bg-muted">
-            <CheckCircle2 className="w-4 h-4 mr-2" />
-            Create
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleDownloadLatex} className="border-border/50 bg-background hover:bg-muted">
-            <FileCode className="w-4 h-4 mr-2" />
-            Export .tex
-          </Button>
-          {pdfUrl && (
-            <Button variant="outline" size="sm" asChild className="border-border/50 bg-background hover:bg-muted">
-              <a href={pdfUrl} download="intrly_resume.pdf" target="_blank" rel="noopener noreferrer">
-                <Download className="w-4 h-4 mr-2" />
-                Download PDF
-              </a>
-            </Button>
-          )}
-          <Button size="sm" onClick={handleSave} className="shadow-sm">
+          {/* Mobile view toggle */}
+          <div className="flex md:hidden bg-muted rounded-full p-1 border border-border/50">
+             <Button 
+               variant={activeTab === 'editor' ? 'default' : 'ghost'} 
+               size="sm" 
+               className={`h-8 rounded-full ${activeTab === 'editor' ? 'shadow-sm' : ''}`}
+               onClick={() => setActiveTab('editor')}
+             >
+               Edit
+             </Button>
+             <Button 
+               variant={activeTab === 'preview' ? 'default' : 'ghost'} 
+               size="sm" 
+               className={`h-8 rounded-full ${activeTab === 'preview' ? 'shadow-sm' : ''}`}
+               onClick={() => setActiveTab('preview')}
+             >
+               Preview
+             </Button>
+          </div>
+
+          <Button 
+            onClick={handleSave} 
+            disabled={isSaving || isCompiling || !pdfUrl} 
+            className="rounded-full shadow-sm px-6"
+          >
             <Save className="w-4 h-4 mr-2" />
-            Save Resume
+            {isSaving ? "Saving..." : "Save Resume"}
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
-        {/* Editor Side */}
-        <div className="flex-1 flex flex-col min-h-0 bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden">
-          <div className="h-12 border-b border-border/50 bg-muted/20 flex items-center px-4 justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-destructive/80"></div>
-              <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        
+        {/* LEFT PANE: Editor */}
+        <div className={`w-full md:w-[500px] lg:w-[600px] flex-col overflow-y-auto border-r border-border/50 bg-background/50 p-6 space-y-8 ${activeTab === 'editor' ? 'flex' : 'hidden md:flex'}`}>
+          
+          <section className="space-y-4">
+            <h3 className="text-lg font-bold flex items-center gap-2 border-b pb-2">
+               Personal Information
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Full Name</Label>
+                <Input value={form.name} onChange={e => updateForm('name', e.target.value)} placeholder="Jane Doe" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Professional Title</Label>
+                <Input value={form.role} onChange={e => updateForm('role', e.target.value)} placeholder="Software Engineer" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Email</Label>
+                <Input type="email" value={form.email} onChange={e => updateForm('email', e.target.value)} placeholder="jane@example.com" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Phone</Label>
+                <Input value={form.phone} onChange={e => updateForm('phone', e.target.value)} placeholder="+1 555-0100" />
+              </div>
             </div>
-            <span className="text-xs font-mono text-muted-foreground">main.tex</span>
-            <div className="w-16"></div>
-          </div>
-          <div className="flex-1 relative">
-            <LatexEditor value={latex} onChange={setLatex} />
-          </div>
-        </div>
+          </section>
 
-        {/* Preview Side */}
-        <div className="flex-[1.2] flex flex-col gap-6 min-h-0">
-          <div className="flex-1 relative bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden flex flex-col">
-            <div className="h-12 border-b border-border/50 bg-muted/20 flex items-center px-4 justify-between">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Live Preview</span>
-              {isCompiling && (
-                <span className="text-xs text-primary flex items-center gap-1.5 animate-pulse">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                  Compiling...
-                </span>
-              )}
-            </div>
-            <div className="flex-1 relative bg-muted/10">
-              <ResumePreview 
-                pdfUrl={pdfUrl} 
-                isCompiling={isCompiling} 
-                error={error} 
+          <section className="space-y-4">
+            <h3 className="text-lg font-bold border-b pb-2">Professional Summary</h3>
+            <div className="space-y-1.5">
+              <Textarea 
+                value={form.summary} 
+                onChange={e => updateForm('summary', e.target.value)} 
+                placeholder="A brief summary of your professional background..."
+                className="min-h-[100px] resize-y"
               />
             </div>
-          </div>
+          </section>
 
-          {error ? (
-            <div className="bg-card rounded-2xl border border-border/50 shadow-sm p-6 flex flex-col gap-2 items-center justify-center text-center">
-              <AlertCircle className="w-8 h-8 text-destructive opacity-80" />
-              <p className="text-sm font-medium text-destructive">Compilation failed</p>
-              <p className="text-xs text-muted-foreground">ATS analysis unavailable until valid resume source is provided.</p>
+          <section className="space-y-4">
+            <div className="flex items-center justify-between border-b pb-2">
+               <h3 className="text-lg font-bold">Experience</h3>
+               <Button variant="ghost" size="sm" onClick={addExperience} className="h-8 text-primary">
+                 <Plus className="w-4 h-4 mr-1" /> Add Role
+               </Button>
             </div>
-          ) : atsScore ? (
-            <div className="bg-card rounded-2xl border border-border/50 shadow-sm p-6 flex flex-col sm:flex-row gap-6 items-center">
-              <div className="flex flex-col items-center justify-center shrink-0">
-                <div className="relative w-20 h-20 flex items-center justify-center">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="10" className="text-muted/30" />
-                    <circle 
-                      cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="10" 
-                      strokeDasharray={`${atsScore.score * 2.827} 282.7`} 
-                      className={atsScore.score >= 80 ? "text-green-500" : atsScore.score >= 60 ? "text-amber-500" : "text-destructive"} 
-                      strokeLinecap="round" 
-                    />
-                  </svg>
-                  <span className="absolute text-xl font-bold">{atsScore.score}</span>
-                </div>
-                <span className="text-xs text-muted-foreground mt-2 font-medium uppercase tracking-wider">ATS Score</span>
-              </div>
-              
-              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-                {atsScore.checks.map((check: any, i: number) => (
-                  <div key={i} className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-                    {check.passed ? (
-                      <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                    ) : (
-                      <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                    )}
-                    <span className={`text-sm ${check.passed ? "text-muted-foreground" : "text-foreground font-medium"}`}>
-                      {check.name}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            
+            <div className="space-y-6">
+              {form.experience.map((exp) => (
+                <Card key={exp.id} className="relative group bg-card shadow-sm border-border/50">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute right-2 top-2 h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
+                    onClick={() => removeExperience(exp.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                  <CardContent className="p-4 space-y-4 pt-10">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label>Role Title</Label>
+                        <Input value={exp.role} onChange={e => updateExperience(exp.id, 'role', e.target.value)} placeholder="Software Engineer" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Company</Label>
+                        <Input value={exp.company} onChange={e => updateExperience(exp.id, 'company', e.target.value)} placeholder="Tech Inc." />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Time Period</Label>
+                      <Input value={exp.year} onChange={e => updateExperience(exp.id, 'year', e.target.value)} placeholder="2021 - Present" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Description (one bullet point per line)</Label>
+                      <Textarea 
+                        value={exp.details} 
+                        onChange={e => updateExperience(exp.id, 'details', e.target.value)} 
+                        placeholder="Developed new features..."
+                        className="min-h-[100px]"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              {form.experience.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">No experience added.</p>
+              )}
             </div>
-          ) : (
-            <div className="bg-card rounded-2xl border border-border/50 shadow-sm p-6 flex flex-col gap-2 items-center justify-center text-center">
-              <CheckCircle2 className="w-8 h-8 text-green-500 opacity-80" />
-              <p className="text-sm font-medium text-green-600 dark:text-green-400">Compiled successfully</p>
-              <p className="text-xs text-muted-foreground">Waiting for ATS analysis...</p>
+          </section>
+
+          <section className="space-y-4">
+            <h3 className="text-lg font-bold border-b pb-2">Skills</h3>
+            <div className="space-y-1.5">
+              <Textarea 
+                value={form.skills} 
+                onChange={e => updateForm('skills', e.target.value)} 
+                placeholder="JavaScript, React, Node.js..."
+                className="min-h-[80px] resize-y"
+              />
             </div>
-          )}
+          </section>
+
+          <section className="space-y-4">
+             <div className="flex items-center justify-between border-b pb-2">
+               <h3 className="text-lg font-bold">Education</h3>
+               <Button variant="ghost" size="sm" onClick={addEducation} className="h-8 text-primary">
+                 <Plus className="w-4 h-4 mr-1" /> Add Education
+               </Button>
+            </div>
+            
+            <div className="space-y-4">
+              {form.education.map((edu) => (
+                <Card key={edu.id} className="relative group bg-card shadow-sm border-border/50">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute right-2 top-2 h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
+                    onClick={() => removeEducation(edu.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                  <CardContent className="p-4 space-y-4 pt-10">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label>Degree / Certification</Label>
+                        <Input value={edu.degree} onChange={e => updateEducation(edu.id, 'degree', e.target.value)} placeholder="B.S. Computer Science" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Institution</Label>
+                        <Input value={edu.university} onChange={e => updateEducation(edu.id, 'university', e.target.value)} placeholder="University Name" />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Time Period</Label>
+                      <Input value={edu.year} onChange={e => updateEducation(edu.id, 'year', e.target.value)} placeholder="2017 - 2021" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              {form.education.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">No education added.</p>
+              )}
+            </div>
+          </section>
         </div>
+
+        {/* RIGHT PANE: Live Preview */}
+        <div className={`flex-1 flex flex-col bg-muted/20 relative ${activeTab === 'preview' ? 'flex' : 'hidden md:flex'}`}>
+          <div className="absolute inset-0 m-4 md:m-6 bg-card rounded-2xl border border-border/50 shadow-md overflow-hidden flex flex-col">
+            <div className="h-10 bg-muted/30 border-b border-border/50 flex items-center justify-center px-4 shrink-0">
+               <span className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Live Document Preview</span>
+            </div>
+            <div className="flex-1 relative">
+               <ResumePreview pdfUrl={pdfUrl} isCompiling={isCompiling} error={error} />
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   )

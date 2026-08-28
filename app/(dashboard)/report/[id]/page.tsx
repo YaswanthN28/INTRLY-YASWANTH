@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { EvaluationService } from "@/services/evaluation-service"
-import { PerformanceRadar, PerformanceTimeline, CircularScore } from "@/components/report/charts"
-import { DownloadReportButton } from "@/components/report/download-button"
-import { Share2, CheckCircle2, XCircle, Lightbulb } from "lucide-react"
+import { Share2, CheckCircle2, AlertCircle, Download, FileText, Mic, Target, Link as LinkIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { PageHeader } from "@/components/dashboard/page-header"
 
 export default async function ReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -22,172 +22,212 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
 
   if (error || !interview) redirect("/dashboard")
 
-  // Normally, transcripts would be populated during the interview phase.
-  // For this MVP, we simulate a perfect transcript hitting all keywords if none exists.
   const transcripts = interview.transcripts || {}
-  if (Object.keys(transcripts).length === 0) {
-    interview.questions.forEach((q: any) => {
-      // Simulate a good response with keywords and some filler words
-      transcripts[q.id] = `Well, um, to answer that, ${q.expected_keywords.join(" ")} are really important concepts that I use daily. It helps build scalable architecture.`
-    })
-  }
-
+  
+  // Clean evaluation based *only* on actual transcripts provided
   const report = EvaluationService.evaluate(interview.questions, transcripts)
-  const candidateName = interview.resumes?.raw_json?.name || "Candidate"
-  const detectedRole = interview.resumes?.raw_json?.detectedRole || "Developer"
+  const rawJson = interview.resumes?.raw_json || {}
+  const candidateName = rawJson.name || "Candidate"
+  const detectedRole = rawJson.roleDetails?.primaryRole?.role || rawJson.detectedRole || "General Practice"
+  const resumeSkills = (rawJson.extractedSkills || []).map((s: string) => s.toLowerCase())
+
+  // EVIDENCE CHAIN CALCULATION
+  // Find concepts that were both claimed on the resume AND demonstrated in the practice interview
+  const demonstratedConcepts = new Set<string>()
+  const newlyDemonstratedConcepts = new Set<string>()
+  const missedExpectedConcepts = new Set<string>()
+  
+  report.questionResults.forEach(qr => {
+    qr.matchedKeywords.forEach(kw => {
+      if (resumeSkills.includes(kw.toLowerCase())) {
+        demonstratedConcepts.add(kw)
+      } else {
+        newlyDemonstratedConcepts.add(kw)
+      }
+    })
+    qr.missedKeywords.forEach(kw => missedExpectedConcepts.add(kw))
+  })
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-12 font-sans animate-in fade-in slide-in-from-bottom-4 duration-700" id="report-container">
+    <div className="max-w-[1200px] mx-auto space-y-8 pb-12 font-sans animate-in fade-in duration-500" id="report-container">
       
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border shadow-sm">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{candidateName}&apos;s Interview Report</h1>
-          <p className="text-muted-foreground mt-1">Role: {detectedRole} • Date: {new Date(interview.created_at).toLocaleDateString()}</p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="gap-2">
-            <Share2 className="w-4 h-4" /> Share
-          </Button>
-          <DownloadReportButton candidateName={candidateName} targetId="report-container" />
-        </div>
-      </div>
+      <PageHeader 
+        eyebrow="Practice Results"
+        title={`${candidateName}'s Interview Report`}
+        description={`Role Context: ${detectedRole} • Completed on ${new Date(interview.created_at).toLocaleDateString()}`}
+        actions={
+          <div className="flex gap-3">
+             <Link href="/history">
+               <Button variant="outline" className="shadow-sm">Back to History</Button>
+             </Link>
+          </div>
+        }
+      />
 
-      {/* HERO METRICS */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="col-span-2 md:col-span-1 bg-card rounded-2xl p-6 border shadow-sm flex items-center justify-center">
-          <CircularScore value={report.overallScore} label="Overall Score" color={report.overallScore > 75 ? "#4ade80" : "#fbbf24"} />
-        </div>
-        <div className="bg-card rounded-2xl p-6 border shadow-sm flex items-center justify-center">
-          <CircularScore value={report.technicalScore} label="Technical" />
-        </div>
-        <div className="bg-card rounded-2xl p-6 border shadow-sm flex items-center justify-center">
-          <CircularScore value={report.communicationScore} label="Communication" />
-        </div>
-        <div className="bg-card rounded-2xl p-6 border shadow-sm flex items-center justify-center">
-          <CircularScore value={report.confidenceScore} label="Confidence" />
-        </div>
-        <div className="bg-card rounded-2xl p-6 border shadow-sm flex items-center justify-center">
-          <CircularScore value={report.roleReadiness} label="Role Readiness" color="#a78bfa" />
-        </div>
-      </div>
-
-      {/* CHARTS ROW */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-card rounded-2xl p-6 border shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Competency Radar</h3>
-          <PerformanceRadar data={report.radarData} />
-        </div>
-        <div className="bg-card rounded-2xl p-6 border shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Performance Timeline</h3>
-          <PerformanceTimeline data={report.timelineData} />
-        </div>
-      </div>
-
-      {/* STRENGTHS & WEAKNESSES */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-green-500/5 rounded-2xl p-6 border border-green-500/20">
-          <h3 className="text-lg font-semibold text-green-600 dark:text-green-400 mb-4 flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5" /> Key Strengths
-          </h3>
-          <ul className="space-y-2">
-            {report.strengths.map((s, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" /> {s}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="bg-red-500/5 rounded-2xl p-6 border border-red-500/20">
-          <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-4 flex items-center gap-2">
-            <XCircle className="w-5 h-5" /> Areas for Improvement
-          </h3>
-          <ul className="space-y-2">
-            {report.weaknesses.map((w, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500" /> {w}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* IMPROVEMENT SUGGESTIONS */}
-      <div className="bg-amber-500/5 rounded-2xl p-6 border border-amber-500/20">
-        <h3 className="text-lg font-semibold text-amber-600 dark:text-amber-400 mb-4 flex items-center gap-2">
-          <Lightbulb className="w-5 h-5" /> Improvement Suggestions
-        </h3>
-        <ul className="grid sm:grid-cols-2 gap-3">
-          {report.weaknesses.map((w, i) => (
-            <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground bg-background/60 rounded-xl p-4 border border-amber-500/10">
-              <div className="mt-0.5 w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
-                <span className="text-amber-500 text-xs font-bold">{i+1}</span>
-              </div>
-              <div>
-                <p className="font-medium text-foreground mb-1">Improve {w}</p>
-                <p className="leading-relaxed">Practice using key terminology and structured responses (STAR method) when answering {w.toLowerCase()} questions.</p>
-              </div>
-            </li>
-          ))}
-          <li className="flex items-start gap-3 text-sm text-muted-foreground bg-background/60 rounded-xl p-4 border border-amber-500/10">
-            <div className="mt-0.5 w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
-              <span className="text-amber-500 text-xs font-bold">{report.weaknesses.length + 1}</span>
-            </div>
+      {/* HONEST SCORE BREAKDOWN */}
+      <div className="grid md:grid-cols-3 gap-6">
+         {/* Overall Practice Score */}
+         <div className="bg-card rounded-xl p-6 border border-border/50 shadow-sm flex flex-col justify-between">
             <div>
-              <p className="font-medium text-foreground mb-1">Reduce filler words</p>
-              <p className="leading-relaxed">Words like &quot;um&quot;, &quot;uh&quot;, and &quot;like&quot; reduce perceived confidence. Practice pausing instead of filling silence.</p>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Target className="w-5 h-5 text-primary" /> Overall Score
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Calculated holistically from keyword density, answer length, and filler-word detection.</p>
             </div>
-          </li>
-        </ul>
+            <div className="mt-6 flex items-end gap-2">
+              <span className={`text-5xl font-bold tracking-tight ${report.overallScore >= 75 ? 'text-green-500' : report.overallScore >= 50 ? 'text-amber-500' : 'text-destructive'}`}>
+                {report.overallScore}%
+              </span>
+            </div>
+         </div>
+
+         {/* Technical Score */}
+         <div className="bg-card rounded-xl p-6 border border-border/50 shadow-sm flex flex-col justify-between">
+            <div>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5 text-muted-foreground" /> Concept Match
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Evaluates the presence of expected technical concepts and keywords in your answers.</p>
+            </div>
+            <div className="mt-6 flex items-end gap-2">
+              <span className="text-3xl font-bold tracking-tight text-foreground">{report.technicalScore}%</span>
+            </div>
+         </div>
+
+         {/* Delivery Score */}
+         <div className="bg-card rounded-xl p-6 border border-border/50 shadow-sm flex flex-col justify-between">
+            <div>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Mic className="w-5 h-5 text-muted-foreground" /> Delivery Confidence
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Calculated negatively by the presence of filler words (um, uh, like) in your speech.</p>
+            </div>
+            <div className="mt-6 flex items-end gap-2">
+              <span className="text-3xl font-bold tracking-tight text-foreground">{report.confidenceScore}%</span>
+            </div>
+         </div>
       </div>
 
-      {/* DETAILED BREAKDOWN */}
-      <div className="bg-card rounded-2xl border shadow-sm overflow-hidden">
-        <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold">Question Breakdown</h3>
+      {/* ROLE READINESS FOUNDATION (Honest Placeholder) */}
+      <div className="bg-primary/5 rounded-xl p-6 border border-primary/20 flex flex-col sm:flex-row items-start sm:items-center gap-6 shadow-sm">
+         <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+           <Target className="w-6 h-6 text-primary" />
+         </div>
+         <div>
+            <h3 className="text-lg font-bold text-foreground">Role Readiness <span className="ml-2 text-xs uppercase tracking-wider font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">Coming Soon</span></h3>
+            <p className="text-sm text-foreground/80 mt-1 max-w-3xl leading-relaxed">
+              Role readiness will synthesize what you <strong>Claim</strong> (Resume Evidence) and what you <strong>Demonstrate</strong> (Practice Performance) into a final predictive metric before your real interview.
+            </p>
+         </div>
+      </div>
+
+      {/* EVIDENCE CHAIN */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold tracking-tight">Evidence Chain</h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          
+          <div className="bg-card rounded-xl border border-border/50 shadow-sm overflow-hidden flex flex-col">
+            <div className="bg-muted/20 border-b border-border/50 p-4">
+              <h3 className="font-semibold flex items-center gap-2">
+                 <LinkIcon className="w-4 h-4 text-green-500" /> Verified Evidence
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">Concepts claimed on your resume and proven in practice.</p>
+            </div>
+            <div className="p-6 flex-1">
+              {demonstratedConcepts.size > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {Array.from(demonstratedConcepts).map(kw => (
+                    <span key={kw} className="bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 px-2.5 py-1 rounded-md text-xs font-medium">
+                      {kw}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No overlapping evidence detected between your resume and your practice answers.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-card rounded-xl border border-border/50 shadow-sm overflow-hidden flex flex-col">
+            <div className="bg-muted/20 border-b border-border/50 p-4">
+              <h3 className="font-semibold flex items-center gap-2">
+                 <AlertCircle className="w-4 h-4 text-amber-500" /> Not Demonstrated
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">Expected concepts that were missing from your answers.</p>
+            </div>
+            <div className="p-6 flex-1">
+              {missedExpectedConcepts.size > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {Array.from(missedExpectedConcepts).map(kw => (
+                    <span key={kw} className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-md text-xs font-medium">
+                      {kw}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">You successfully demonstrated all expected concepts.</p>
+              )}
+            </div>
+          </div>
+
         </div>
-        <div className="divide-y">
+      </div>
+
+      {/* QUESTION-LEVEL BREAKDOWN */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold tracking-tight">Question Breakdown</h2>
+        <div className="space-y-4">
           {report.questionResults.map((qr, i) => (
-            <div key={i} className="p-6 hover:bg-muted/30 transition-colors">
-              <div className="flex justify-between items-start gap-4 mb-3">
-                <h4 className="font-medium text-sm leading-relaxed"><span className="text-muted-foreground mr-2">Q{i+1}.</span>{qr.question.question}</h4>
-                <div className="shrink-0 flex items-center gap-2 bg-background px-3 py-1 rounded-full border text-xs font-semibold">
-                  <span className={qr.score > 70 ? "text-green-500" : qr.score > 40 ? "text-yellow-500" : "text-red-500"}>
-                    {qr.score}%
+            <div key={i} className="bg-card rounded-xl border border-border/50 shadow-sm overflow-hidden">
+              <div className="p-5 md:p-6 bg-muted/10 border-b border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <h4 className="font-medium text-base leading-relaxed max-w-3xl">
+                  <span className="text-muted-foreground mr-2 font-mono text-sm">Q{i+1}.</span>
+                  {qr.question.question}
+                </h4>
+                <div className="shrink-0 flex items-center gap-2 bg-background px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wider">
+                  <span className={qr.score >= 75 ? "text-green-500" : qr.score >= 50 ? "text-amber-500" : "text-destructive"}>
+                    Score: {qr.score}%
                   </span>
                 </div>
               </div>
               
-              <div className="bg-background rounded-lg p-4 text-sm text-muted-foreground mb-4 font-mono leading-relaxed border">
-                &quot;{qr.transcript}&quot;
-              </div>
+              <div className="p-5 md:p-6 space-y-6">
+                <div>
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Your Answer</h5>
+                  <div className="bg-background rounded-lg p-4 text-sm text-foreground leading-relaxed border border-border/50 font-mono whitespace-pre-wrap">
+                    {qr.transcript || <span className="text-muted-foreground italic">(No answer provided)</span>}
+                  </div>
+                </div>
 
-              <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs">
-                {qr.matchedKeywords.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-foreground">Matched:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {qr.matchedKeywords.map(kw => (
-                        <span key={kw} className="bg-green-500/10 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-md border border-green-500/20">{kw}</span>
-                      ))}
+                <div className="flex flex-col sm:flex-row gap-6">
+                  {qr.matchedKeywords.length > 0 && (
+                    <div className="flex-1 space-y-2">
+                      <h5 className="text-xs font-bold uppercase tracking-wider text-green-600 dark:text-green-400">Detected Concepts</h5>
+                      <div className="flex flex-wrap gap-1.5">
+                        {qr.matchedKeywords.map(kw => (
+                          <span key={kw} className="bg-green-500/10 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-md border border-green-500/20 text-xs">{kw}</span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                {qr.missedKeywords.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-foreground">Missed:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {qr.missedKeywords.map(kw => (
-                        <span key={kw} className="bg-red-500/10 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-md border border-red-500/20">{kw}</span>
-                      ))}
+                  )}
+                  {qr.missedKeywords.length > 0 && (
+                    <div className="flex-1 space-y-2">
+                      <h5 className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Expected (Not Detected)</h5>
+                      <div className="flex flex-wrap gap-1.5">
+                        {qr.missedKeywords.map(kw => (
+                          <span key={kw} className="bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-md border border-amber-500/20 text-xs">{kw}</span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
+      
     </div>
   )
 }

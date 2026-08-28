@@ -69,6 +69,7 @@ interface UseSTTReturn {
   stopListening: () => void
   isListening: boolean
   transcript: string
+  setTranscript: (val: string) => void
   resetTranscript: () => void
   isSupported: boolean
   lastSpeechTime: number
@@ -153,5 +154,14 @@ export function useSTT(): UseSTTReturn {
     setLastSpeechTime(0)
   }, [])
 
-  return { startListening, stopListening, isListening, transcript, resetTranscript, isSupported, lastSpeechTime }
+  return {
+    startListening,
+    stopListening,
+    isListening,
+    transcript,
+    setTranscript,
+    resetTranscript,
+    isSupported,
+    lastSpeechTime
+  }
 }

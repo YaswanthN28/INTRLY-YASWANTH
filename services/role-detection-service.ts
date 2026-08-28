@@ -13,7 +13,7 @@ export type RoleDetectionResult = {
 };
 
 // Hardcoded robust weighted dictionary to ensure accurate production-grade parsing
-const ROLE_WEIGHTS = [
+export const ROLE_WEIGHTS = [
   {
     title: "UI/UX Designer",
     threshold: 15,

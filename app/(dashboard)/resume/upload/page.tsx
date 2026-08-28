@@ -1,6 +1,7 @@
 import { ResumeUpload } from "@/components/dashboard/resume-upload"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import { PageHeader } from "@/components/dashboard/page-header"
 
 export const metadata = {
   title: 'Upload Resume | INTRLY',
@@ -16,9 +17,13 @@ export default async function UploadResumePage() {
   }
 
   return (
-    <div className="h-full flex items-center justify-center p-8">
-      <div className="w-full max-w-4xl">
-        <h1 className="text-3xl font-extrabold tracking-tight mb-8">Upload Resume</h1>
+    <div className="max-w-[1200px] mx-auto space-y-8 pb-12 animate-in fade-in duration-500">
+      <PageHeader 
+        eyebrow="Create"
+        title="Upload Resume"
+        description="Import your existing resume to instantly prepare for tailored interviews."
+      />
+      <div className="w-full max-w-4xl mx-auto">
         <ResumeUpload userId={user.id} />
       </div>
     </div>

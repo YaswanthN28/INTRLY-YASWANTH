@@ -5,7 +5,7 @@ import { InterviewGenerationService } from '@/services/interview-generation-serv
 
 export async function POST(request: NextRequest) {
   try {
-    const { resumeId } = await request.json();
+    const { resumeId, focusRequirement } = await request.json();
 
     if (!resumeId) {
       return NextResponse.json({ error: 'Missing resumeId' }, { status: 400 });
@@ -28,36 +28,38 @@ export async function POST(request: NextRequest) {
        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch the parsed resume
-    const { data: resume, error: fetchError } = await supabase
+    // 1. Fetch Resume & Role
+    const { data: resume } = await supabase
       .from('resumes')
       .select('raw_json')
       .eq('id', resumeId)
       .eq('user_id', user.id)
       .single();
 
-    if (fetchError || !resume || !resume.raw_json) {
-      return NextResponse.json({ error: 'Failed to fetch resume data' }, { status: 404 });
+    if (!resume) {
+       return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
     }
 
-    const rawJson = resume.raw_json;
-    const primaryRole = rawJson.roleDetails?.primaryRole?.role || rawJson.detectedRole;
+    const parsed = resume.raw_json;
+    const primaryRole = parsed?.basics?.label || null;
+    const totalExperienceYears = parsed?.work?.length || 0; // rough proxy
+    const skills = parsed?.skills?.map((s: any) => s.name) || [];
     
-    // Generate the questions deterministically
-    const generatedQuestions = InterviewGenerationService.generate(
-      primaryRole, 
-      rawJson.totalExperienceYears || 0, 
-      rawJson.extractedSkills || []
-    );
+    // Fetch user target role
+    const targetRole = user.user_metadata?.target_role || primaryRole;
 
-    // Save the interview session
+    // 2. Generate Questions
+    const generatedQuestions = InterviewGenerationService.generate(targetRole, totalExperienceYears, skills, focusRequirement);
+
+    // 3. Store Session
     const { data: interview, error: insertError } = await supabase
       .from('interviews')
       .insert({
         user_id: user.id,
         resume_id: resumeId,
         questions: generatedQuestions,
-        status: 'pending'
+        status: 'pending',
+        target_role: targetRole
       })
       .select()
       .single();

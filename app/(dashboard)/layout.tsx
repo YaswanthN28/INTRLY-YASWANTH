@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
+import { MobileNav } from "@/components/dashboard/mobile-nav"
 
 export default async function DashboardLayout({
   children,
@@ -21,10 +22,11 @@ export default async function DashboardLayout({
       
       <div className="flex-1 flex flex-col min-w-0 bg-muted/10 relative">
         <Header />
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-[1600px] mx-auto w-full">
+        <main className="flex-1 p-6 md:p-8 pb-24 md:pb-8 overflow-y-auto max-w-[1600px] mx-auto w-full">
           {children}
         </main>
       </div>
+      <MobileNav />
     </div>
   )
 }

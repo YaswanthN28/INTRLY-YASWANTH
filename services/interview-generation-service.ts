@@ -16,7 +16,7 @@ export type Question = {
 };
 
 export const InterviewGenerationService = {
-  generate(primaryRole: string | null, totalExperienceYears: number, skills: string[]): Question[] {
+  generate(primaryRole: string | null, totalExperienceYears: number, skills: string[], focusRequirement?: string): Question[] {
     // 1. Determine Experience Level
     let experienceLevel = "Junior";
     if (totalExperienceYears >= 3 && totalExperienceYears <= 5) experienceLevel = "Mid";
@@ -68,6 +68,20 @@ export const InterviewGenerationService = {
         }
       }
     };
+
+    if (focusRequirement) {
+      selectedQuestions.push({
+        id: `remediation-${Date.now()}`,
+        role: ['All'],
+        category: 'Remediation Focus',
+        experience_level: ['All'],
+        difficulty: 3,
+        question: `Let's focus on a specific requirement: ${focusRequirement}. Can you walk me through your experience, approach, and how you apply this concept in a real-world scenario?`,
+        expected_keywords: [focusRequirement],
+        follow_up_questions: [],
+        score_weight: 1
+      });
+    }
 
     addQuestions(hrQuestions, 2);
     addQuestions(techQuestions, 5);

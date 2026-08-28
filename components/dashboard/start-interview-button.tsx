@@ -6,7 +6,15 @@ import { useResume } from "@/hooks/use-resume-upload"
 import { Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
-export function StartInterviewButton({ userId }: { userId: string }) {
+export function StartInterviewButton({ 
+  userId, 
+  className,
+  variant = "default" 
+}: { 
+  userId: string
+  className?: string
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+}) {
   const { currentResume } = useResume(userId)
   const [isLoading, setIsLoading] = React.useState(false)
   const router = useRouter()
@@ -38,7 +46,7 @@ export function StartInterviewButton({ userId }: { userId: string }) {
   }
 
   return (
-    <Button className="w-full" onClick={handleStart} disabled={isLoading}>
+    <Button variant={variant} className={className || "w-full"} onClick={handleStart} disabled={isLoading}>
       {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
       Start New Interview
     </Button>
