@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     const skills = parsed?.skills?.map((s: any) => s.name) || [];
     
     // Fetch user target role
-    const targetRole = user.user_metadata?.target_role || primaryRole;
+    const targetRole = user.user_metadata?.target_role || primaryRole || 'General Candidate';
 
     // 2. Generate Questions
     const generatedQuestions = InterviewGenerationService.generate(targetRole, totalExperienceYears, skills, focusRequirement);
@@ -58,15 +58,16 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         resume_id: resumeId,
         questions: generatedQuestions,
-        status: 'pending',
-        target_role: targetRole
+        status: 'pending'
       })
       .select()
       .single();
 
     if (insertError) {
       console.error("Interview insert error:", insertError);
-      return NextResponse.json({ error: 'Failed to create interview session' }, { status: 500 });
+      return NextResponse.json({ 
+        error: `DB Error: ${insertError.message}. Details: ${insertError.details || 'None'}` 
+      }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, interviewId: interview.id });

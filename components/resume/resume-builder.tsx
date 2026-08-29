@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Save, AlertCircle, Plus, Trash2, LayoutTemplate } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Save, AlertCircle, Plus, Trash2, LayoutTemplate, CheckCircle, Brain, LayoutDashboard, FileDown } from "lucide-react"
 import { saveResume } from "@/app/(dashboard)/resume/create/actions"
 
 type Experience = { id: string; role: string; company: string; year: string; details: string }
+type Project = { id: string; name: string; tools: string; year: string; details: string }
 type Education = { id: string; degree: string; university: string; year: string }
 
 type ResumeFormState = {
@@ -18,8 +20,12 @@ type ResumeFormState = {
   role: string
   email: string
   phone: string
+  location: string
+  linkedin: string
+  portfolio: string
   summary: string
   experience: Experience[]
+  projects: Project[]
   education: Education[]
   skills: string
 }
@@ -29,6 +35,9 @@ const DEFAULT_STATE: ResumeFormState = {
   role: "Software Engineer",
   email: "jane@example.com",
   phone: "+1 555-0100",
+  location: "San Francisco, CA",
+  linkedin: "linkedin.com/in/janedoe",
+  portfolio: "janedoe.com",
   summary: "Results-driven Software Engineer with 4 years of experience building scalable web applications. Passionate about clean code, robust architecture, and user-centric design.",
   experience: [
     {
@@ -37,6 +46,15 @@ const DEFAULT_STATE: ResumeFormState = {
       company: "Tech Solutions Inc.",
       year: "2021 - Present",
       details: "Led the migration to Next.js, improving page load speeds by 40%.\nMentored junior developers and established code review guidelines."
+    }
+  ],
+  projects: [
+    {
+      id: "1",
+      name: "E-Commerce Platform",
+      tools: "Next.js, Tailwind CSS, Stripe",
+      year: "2023",
+      details: "Built a fully functional e-commerce platform processing over $10k in monthly transactions."
     }
   ],
   education: [
@@ -50,44 +68,76 @@ const DEFAULT_STATE: ResumeFormState = {
   skills: "JavaScript, TypeScript, React, Node.js, Next.js, Tailwind CSS"
 }
 
+const escapeLatex = (str: string) => {
+  if (!str) return '';
+  return String(str)
+    .replace(/\\/g, '\\textbackslash{}')
+    .replace(/&/g, '\\&')
+    .replace(/%/g, '\\%')
+    .replace(/\$/g, '\\$')
+    .replace(/#/g, '\\#')
+    .replace(/_/g, '\\_')
+    .replace(/\{/g, '\\{')
+    .replace(/\}/g, '\\}')
+    .replace(/~/g, '\\textasciitilde{}')
+    .replace(/\^/g, '\\textasciicircum{}');
+}
+
 const generateLatex = (data: ResumeFormState) => {
+  const contactParts = []
+  if (data.email) contactParts.push(escapeLatex(data.email))
+  if (data.phone) contactParts.push(escapeLatex(data.phone))
+  if (data.location) contactParts.push(escapeLatex(data.location))
+  if (data.linkedin) contactParts.push(escapeLatex(data.linkedin))
+  if (data.portfolio) contactParts.push(escapeLatex(data.portfolio))
+  
   return `\\documentclass[11pt]{article}
 \\usepackage[margin=0.7in]{geometry}
 \\usepackage{enumitem}
 \\usepackage{hyperref}
 \\begin{document}
 \\begin{center}
-{\\LARGE \\textbf{${data.name || 'Your Name'}}}\\\\
-${data.role || 'Professional Title'}\\\\
-${data.email || 'email@example.com'} \\,|\\, ${data.phone || 'Phone Number'}
+{\\LARGE \\textbf{${escapeLatex(data.name) || 'Your Name'}}}\\\\
+${escapeLatex(data.role) || 'Professional Title'}\\\\
+${contactParts.join(' \\,|\\, ')}
 \\end{center}
 
 \\section*{Summary}
-${data.summary || 'Professional summary goes here.'}
+${escapeLatex(data.summary) || 'Professional summary goes here.'}
 
 \\section*{Experience}
-${data.experience.length ? data.experience.map(exp => `\\textbf{${exp.role || 'Role'}} \\hfill ${exp.year || 'Year'}\\\\
-${exp.company || 'Company'}
+${data.experience.length ? data.experience.map(exp => `\\textbf{${escapeLatex(exp.role) || 'Role'}} \\hfill ${escapeLatex(exp.year) || 'Year'}\\\\
+${escapeLatex(exp.company) || 'Company'}
 \\begin{itemize}[leftmargin=*]
-${exp.details.split('\\n').filter(d => d.trim()).map(d => `\\item ${d}`).join('\\n')}
+${exp.details.split('\\n').filter(d => d.trim()).map(d => `\\item ${escapeLatex(d)}`).join('\\n')}
 \\end{itemize}
 `).join('\\n') : '\\textit{No experience added yet.}'}
 
+\\section*{Projects}
+${data.projects.length ? data.projects.map(proj => `\\textbf{${escapeLatex(proj.name) || 'Project Name'}} \\hfill ${escapeLatex(proj.year) || 'Year'}\\\\
+\\textit{${escapeLatex(proj.tools) || 'Tools Used'}}
+\\begin{itemize}[leftmargin=*]
+${proj.details.split('\\n').filter(d => d.trim()).map(d => `\\item ${escapeLatex(d)}`).join('\\n')}
+\\end{itemize}
+`).join('\\n') : '\\textit{No projects added yet.}'}
+
 \\section*{Skills}
-${data.skills || 'Your skills go here.'}
+${escapeLatex(data.skills) || 'Your skills go here.'}
 
 \\section*{Education}
-${data.education.length ? data.education.map(edu => `\\textbf{${edu.degree || 'Degree'}} \\hfill ${edu.year || 'Year'}\\\\
-${edu.university || 'University'}`).join('\\n\\vspace{1em}\\n') : '\\textit{No education added yet.}'}
+${data.education.length ? data.education.map(edu => `\\textbf{${escapeLatex(edu.degree) || 'Degree'}} \\hfill ${escapeLatex(edu.year) || 'Year'}\\\\
+${escapeLatex(edu.university) || 'University'}`).join('\\n\\vspace{1em}\\n') : '\\textit{No education added yet.}'}
 \\end{document}`
 }
 
 export function ResumeBuilder() {
+  const router = useRouter()
   const [form, setForm] = useState<ResumeFormState>(DEFAULT_STATE)
   const [isCompiling, setIsCompiling] = useState(false)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
   
   // Track active view on mobile
   const [activeTab, setActiveTab] = useState<'editor'|'preview'>('editor')
@@ -141,7 +191,7 @@ export function ResumeBuilder() {
     try {
       const latex = generateLatex(form)
       await saveResume(latex, pdfUrl, null)
-      alert("Resume saved successfully.")
+      setShowSuccessModal(true)
     } catch (err: any) {
       alert("Error saving resume: " + err.message)
     } finally {
@@ -174,6 +224,27 @@ export function ResumeBuilder() {
       experience: prev.experience.filter(exp => exp.id !== id)
     }))
   }
+  
+  const addProject = () => {
+    setForm(prev => ({
+      ...prev,
+      projects: [...prev.projects, { id: Date.now().toString(), name: "", tools: "", year: "", details: "" }]
+    }))
+  }
+
+  const updateProject = (id: string, field: keyof Project, value: string) => {
+    setForm(prev => ({
+      ...prev,
+      projects: prev.projects.map(proj => proj.id === id ? { ...proj, [field]: value } : proj)
+    }))
+  }
+
+  const removeProject = (id: string) => {
+    setForm(prev => ({
+      ...prev,
+      projects: prev.projects.filter(proj => proj.id !== id)
+    }))
+  }
 
   const addEducation = () => {
     setForm(prev => ({
@@ -197,7 +268,7 @@ export function ResumeBuilder() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-background/50">
+    <div className="flex flex-col absolute -top-6 -left-6 -right-6 -bottom-24 md:-top-8 md:-left-8 md:-right-8 md:-bottom-8 bg-background/50 z-10 overflow-hidden">
       
       {/* Builder Toolbar */}
       <div className="shrink-0 h-16 border-b border-border/50 bg-card flex items-center justify-between px-6 z-10 sticky top-0">
@@ -232,14 +303,33 @@ export function ResumeBuilder() {
              </Button>
           </div>
 
-          <Button 
-            onClick={handleSave} 
-            disabled={isSaving || isCompiling || !pdfUrl} 
-            className="rounded-full shadow-sm px-6"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isSaving ? "Saving..." : "Save Resume"}
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Download Button */}
+            <a 
+              href={pdfUrl || "#"} 
+              download="My_Resume.pdf" 
+              className={isCompiling || !pdfUrl ? "pointer-events-none opacity-50" : ""}
+            >
+              <Button 
+                variant="outline" 
+                disabled={isCompiling || !pdfUrl} 
+                className="rounded-full shadow-sm px-6"
+                type="button"
+              >
+                <FileDown className="w-4 h-4 mr-2" />
+                Download
+              </Button>
+            </a>
+
+            <Button 
+              onClick={handleSave} 
+              disabled={isSaving || isCompiling || !pdfUrl} 
+              className="rounded-full shadow-sm px-6"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSaving ? "Saving..." : "Save Resume"}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -268,6 +358,18 @@ export function ResumeBuilder() {
               <div className="space-y-1.5">
                 <Label>Phone</Label>
                 <Input value={form.phone} onChange={e => updateForm('phone', e.target.value)} placeholder="+1 555-0100" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Location</Label>
+                <Input value={form.location} onChange={e => updateForm('location', e.target.value)} placeholder="San Francisco, CA" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>LinkedIn URL</Label>
+                <Input value={form.linkedin} onChange={e => updateForm('linkedin', e.target.value)} placeholder="linkedin.com/in/janedoe" />
+              </div>
+              <div className="space-y-1.5 col-span-2">
+                <Label>Portfolio / Website</Label>
+                <Input value={form.portfolio} onChange={e => updateForm('portfolio', e.target.value)} placeholder="janedoe.com" />
               </div>
             </div>
           </section>
@@ -332,6 +434,58 @@ export function ResumeBuilder() {
               ))}
               {form.experience.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">No experience added.</p>
+              )}
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <div className="flex items-center justify-between border-b pb-2">
+               <h3 className="text-lg font-bold">Projects</h3>
+               <Button variant="ghost" size="sm" onClick={addProject} className="h-8 text-primary">
+                 <Plus className="w-4 h-4 mr-1" /> Add Project
+               </Button>
+            </div>
+            
+            <div className="space-y-6">
+              {form.projects.map((proj) => (
+                <Card key={proj.id} className="relative group bg-card shadow-sm border-border/50">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute right-2 top-2 h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
+                    onClick={() => removeProject(proj.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                  <CardContent className="p-4 space-y-4 pt-10">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label>Project Name</Label>
+                        <Input value={proj.name} onChange={e => updateProject(proj.id, 'name', e.target.value)} placeholder="E-Commerce Platform" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Tools / Tech Stack</Label>
+                        <Input value={proj.tools} onChange={e => updateProject(proj.id, 'tools', e.target.value)} placeholder="React, Node.js" />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Time Period / Date</Label>
+                      <Input value={proj.year} onChange={e => updateProject(proj.id, 'year', e.target.value)} placeholder="2023" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Description (one bullet point per line)</Label>
+                      <Textarea 
+                        value={proj.details} 
+                        onChange={e => updateProject(proj.id, 'details', e.target.value)} 
+                        placeholder="Built a fully functional..."
+                        className="min-h-[100px]"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              {form.projects.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">No projects added.</p>
               )}
             </div>
           </section>
@@ -405,6 +559,32 @@ export function ResumeBuilder() {
         </div>
 
       </div>
+      
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-card w-full max-w-sm p-6 rounded-2xl shadow-xl border border-border/50 flex flex-col items-center text-center space-y-6 animate-in zoom-in-95 duration-300">
+            <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center">
+               <CheckCircle className="w-8 h-8 text-green-500" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold">Resume Saved!</h3>
+              <p className="text-muted-foreground text-sm">Your resume has been saved successfully. What would you like to do next?</p>
+            </div>
+            <div className="flex flex-col gap-3 w-full pt-2">
+              <Button onClick={() => router.push('/resume/intelligence')} className="w-full gap-2 rounded-full">
+                <Brain className="w-4 h-4" /> Analyze Resume
+              </Button>
+              <Button onClick={() => router.push('/dashboard')} variant="outline" className="w-full gap-2 rounded-full">
+                <LayoutDashboard className="w-4 h-4" /> Go to Dashboard
+              </Button>
+              <Button onClick={() => setShowSuccessModal(false)} variant="ghost" className="w-full text-muted-foreground rounded-full">
+                Continue Editing
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -3,8 +3,9 @@ import { redirect } from "next/navigation"
 import { PageHeader } from "@/components/dashboard/page-header"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Brain, FileText, Target, CheckCircle2, AlertCircle, FileSearch, Sparkles, ChevronRight, Briefcase } from "lucide-react"
+import { Brain, FileText, Target, CheckCircle2, AlertCircle, FileSearch, Sparkles, ChevronRight, Briefcase, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { ParsingService } from "@/services/parsing-service"
 
 export const metadata = {
   title: 'Resume Intelligence | INTRLY',
@@ -20,7 +21,7 @@ export default async function ResumeIntelligencePage() {
   // Fetch the latest resume
   const { data: resumes } = await supabase
     .from('resumes')
-    .select('id, file_name, raw_json, extracted_skills, created_at, status')
+    .select('id, file_name, raw_json, extracted_skills, created_at, status, latex_source')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -59,29 +60,54 @@ export default async function ResumeIntelligencePage() {
     )
   }
 
-  // EMPTY STATE: Unparsed resume (Should rarely happen now with Phase 3D changes)
-  if (!currentResume.raw_json) {
-    return (
-      <div className="max-w-[1200px] mx-auto space-y-8 pb-12 animate-in fade-in duration-500">
-        <PageHeader 
-          eyebrow="Understand"
-          title="Resume Intelligence" 
-          description="Understand the skills, experience and evidence represented in your resume."
-        />
-        <Card className="border-border/50 shadow-sm border-t-amber-500 border-t-4">
-          <CardContent className="flex flex-col items-center justify-center p-16 text-center">
-            <AlertCircle className="w-12 h-12 text-amber-500 mb-4" />
-            <h2 className="text-xl font-bold mb-2">Resume not analyzed</h2>
-            <p className="text-muted-foreground max-w-md mb-8">
-              Your resume hasn't been processed by our intelligence engine yet. Re-upload your resume to trigger analysis.
-            </p>
-            <Link href="/resume/upload">
-              <Button>Re-upload Resume</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    )
+  // Auto-parse if the resume was built but not yet parsed
+  if (currentResume && !currentResume.raw_json) {
+    if (currentResume.latex_source) {
+      try {
+        // Strip out basic LaTeX commands for the parser
+        const rawText = currentResume.latex_source.replace(/\\[a-zA-Z]+\*?(\{.*?\})?/g, ' ').replace(/[{}]/g, '')
+        const parsedData = ParsingService.parseText(rawText)
+        
+        // Update DB
+        await supabase
+          .from('resumes')
+          .update({
+            parsed_text: parsedData.rawText,
+            extracted_skills: parsedData.extractedSkills,
+            raw_json: parsedData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentResume.id)
+          
+        currentResume.raw_json = parsedData
+      } catch (e) {
+        console.error("Auto-parse failed:", e)
+      }
+    }
+
+    if (!currentResume.raw_json) {
+      return (
+        <div className="max-w-[1200px] mx-auto space-y-8 pb-12 animate-in fade-in duration-500">
+          <PageHeader 
+            eyebrow="Understand"
+            title="Resume Intelligence" 
+            description="Understand the skills, experience and evidence represented in your resume."
+          />
+          <Card className="border-border/50 shadow-sm border-t-amber-500 border-t-4">
+            <CardContent className="flex flex-col items-center justify-center p-16 text-center">
+              <AlertCircle className="w-12 h-12 text-amber-500 mb-4" />
+              <h2 className="text-xl font-bold mb-2">Resume not analyzed</h2>
+              <p className="text-muted-foreground max-w-md mb-8">
+                Your resume hasn't been processed by our intelligence engine yet. Re-upload your resume to trigger analysis.
+              </p>
+              <Link href="/resume/upload">
+                <Button>Re-upload Resume</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      )
+    }
   }
 
   // Has parsed data
@@ -105,17 +131,28 @@ export default async function ResumeIntelligencePage() {
       />
 
       <div className="grid gap-6 md:grid-cols-3">
-        {/* L2: RESUME SNAPSHOT */}
-        <Card className="md:col-span-2 border-border/50 shadow-sm">
-          <CardHeader className="bg-muted/20 border-b border-border/50">
+        {/* L2: ATS SCORE & SNAPSHOT */}
+        <Card className="md:col-span-2 border-border/50 shadow-sm relative overflow-hidden group flex flex-col justify-between">
+          <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-primary/5 to-transparent z-0"></div>
+          <CardHeader className="bg-muted/20 border-b border-border/50 z-10 relative">
             <CardTitle className="flex items-center gap-2">
               <FileSearch className="w-5 h-5 text-primary" />
-              Extracted Snapshot
+              Intelligence & ATS Score
             </CardTitle>
             <CardDescription>High-level facts identified from your document.</CardDescription>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <CardContent className="p-6 flex flex-col md:flex-row gap-8 items-center z-10 relative">
+            {/* ATS Score Ring Mock */}
+            <div className="relative w-32 h-32 flex shrink-0 items-center justify-center rounded-full bg-primary/10 border-4 border-primary">
+              <div className="text-center">
+                <span className="text-3xl font-bold text-foreground">
+                  {Math.min(100, Math.max(50, 65 + (data.extractedSkills?.length || 0)))}
+                </span>
+                <span className="text-sm text-muted-foreground block">/ 100</span>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-x-12 gap-y-6 w-full">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Candidate</p>
                 <p className="font-semibold text-foreground truncate">{data.name || 'Unknown'}</p>
@@ -136,32 +173,42 @@ export default async function ResumeIntelligencePage() {
           </CardContent>
         </Card>
 
-        {/* L3: ROLE ALIGNMENT (Strengths) */}
-        <Card className="border-border/50 shadow-sm bg-primary/5 border-primary/20 flex flex-col relative overflow-hidden group">
-          <Sparkles className="absolute -right-4 -top-4 w-24 h-24 text-primary/10 transition-transform group-hover:scale-110" />
+        {/* L3: ROLE ALIGNMENT & CALL TO ACTION */}
+        <Card className="border-border/50 shadow-sm bg-primary border-primary flex flex-col relative overflow-hidden group text-primary-foreground">
+          <Sparkles className="absolute -right-4 -top-4 w-24 h-24 text-primary-foreground/20 transition-transform group-hover:scale-110" />
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-primary">
+            <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5" />
               Role Alignment
             </CardTitle>
-            <CardDescription className="text-foreground/70">System interpretation based on evidence.</CardDescription>
+            <CardDescription className="text-primary-foreground/70">Top match based on evidence.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col justify-end">
+          <CardContent className="flex-1 flex flex-col justify-end gap-6 z-10 relative">
             {primaryRole ? (
-              <div className="space-y-4 relative z-10">
+              <div className="space-y-4">
                 <div>
                   <div className="flex items-end justify-between mb-1">
                     <p className="font-bold text-xl">{primaryRole.role}</p>
-                    <span className="text-xs font-semibold bg-primary/20 text-primary px-2 py-1 rounded-md">
+                    <span className="text-xs font-semibold bg-primary-foreground text-primary px-2 py-1 rounded-md">
                       {primaryRole.confidence}% Match
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Primary Detected Role</p>
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Insufficient evidence to confidently detect a primary role.</p>
+              <p className="text-sm text-primary-foreground/70">Insufficient evidence to confidently detect a primary role.</p>
             )}
+            
+            <div className="pt-4 border-t border-primary-foreground/20 mt-auto">
+               <p className="text-xs text-primary-foreground/80 mb-3">
+                 Ready to prove your skills?
+               </p>
+               <Link href="/interview/setup" className="w-full block">
+                 <Button className="w-full bg-background text-primary hover:bg-background/90 shadow-sm gap-2">
+                   Step 3: Setup Interview <ChevronRight className="w-4 h-4" />
+                 </Button>
+               </Link>
+            </div>
           </CardContent>
         </Card>
       </div>

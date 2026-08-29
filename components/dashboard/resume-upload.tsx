@@ -66,6 +66,33 @@ export function ResumeUpload({ userId }: { userId: string }) {
     }
   }, [uploadResume])
 
+  const handleParseExisting = async () => {
+    if (!currentResume) return
+    try {
+      setUploadState('parsing')
+      setError(null)
+      const formData = new FormData()
+      formData.append('resumeId', currentResume.id)
+
+      const parseRes = await fetch('/api/resume/parse', {
+        method: 'POST',
+        body: formData
+      })
+
+      const parseResult = await parseRes.json()
+      
+      if (!parseRes.ok) {
+        throw new Error(parseResult.error || "Failed to parse resume.")
+      }
+      
+      setParsedData(parseResult.data)
+      setUploadState('success')
+    } catch (err: any) {
+      setError(err.message || "Failed to process resume.")
+      setUploadState('success') // revert to success but without parsed data
+    }
+  }
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
@@ -111,9 +138,9 @@ export function ResumeUpload({ userId }: { userId: string }) {
                   <FileText className="w-8 h-8 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">{currentResume.file_name}</p>
+                  <p className="font-semibold text-foreground">{currentResume.file_name || 'My ATS Resume'}</p>
                   <div className="flex gap-2 items-center text-xs text-muted-foreground mt-1">
-                    <span>{(currentResume.file_size / 1024 / 1024).toFixed(2)} MB</span>
+                    {currentResume.file_size ? <span>{(currentResume.file_size / 1024 / 1024).toFixed(2)} MB</span> : <span>Built in INTRLY</span>}
                     <span>•</span>
                     <span>Uploaded {new Date(currentResume.created_at).toLocaleDateString()}</span>
                   </div>
@@ -135,41 +162,54 @@ export function ResumeUpload({ userId }: { userId: string }) {
             </div>
 
             {/* Structured Next Steps instead of raw JSON dump */}
-            <div className="mt-8 grid md:grid-cols-2 gap-4">
-              <div className="p-5 border rounded-xl bg-muted/20 relative overflow-hidden group">
-                 <ScanSearch className="absolute -right-4 -bottom-4 w-24 h-24 text-primary/5 transition-transform group-hover:scale-110" />
-                 <h4 className="font-semibold flex items-center gap-2 mb-2">
-                    <BrainCircuit className="w-4 h-4 text-primary" /> Review Intelligence
-                 </h4>
-                 <p className="text-sm text-muted-foreground mb-4">
-                   We've extracted your skills and experience to power your custom AI interviews.
-                 </p>
-                 {parsedData?.detectedRole && (
-                    <div className="inline-flex items-center text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full mb-4">
-                      Detected Role: {parsedData.detectedRole}
-                    </div>
-                 )}
-                 <Link href="/resume/intelligence" className="block w-full mt-auto">
-                   <Button variant="outline" className="w-full">
-                     View Resume Intelligence <ArrowRight className="w-4 h-4 ml-2" />
-                   </Button>
-                 </Link>
-              </div>
+            {parsedData ? (
+              <div className="mt-8 grid md:grid-cols-2 gap-4">
+                <div className="p-5 border rounded-xl bg-primary/5 border-primary/20 relative overflow-hidden group">
+                   <ScanSearch className="absolute -right-4 -bottom-4 w-24 h-24 text-primary/10 transition-transform group-hover:scale-110" />
+                   <h4 className="font-semibold flex items-center gap-2 mb-2 text-primary">
+                      Step 2: View Intelligence
+                   </h4>
+                   <p className="text-sm text-foreground/80 mb-4">
+                     We've analyzed your resume to extract skills, calculate an ATS score, and determine best-fit roles.
+                   </p>
+                   {parsedData.detectedRole && (
+                      <div className="inline-flex items-center text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full mb-4">
+                        Detected Role: {parsedData.detectedRole}
+                      </div>
+                   )}
+                   <Link href="/resume/intelligence" className="block w-full mt-auto">
+                     <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm">
+                       View Analysis & Roles <ArrowRight className="w-4 h-4 ml-2" />
+                     </Button>
+                   </Link>
+                </div>
 
-              <div className="p-5 border rounded-xl bg-primary/5 border-primary/20 relative overflow-hidden">
-                 <h4 className="font-semibold flex items-center gap-2 mb-2 text-primary">
-                   Take the next step
-                 </h4>
-                 <p className="text-sm text-foreground/80 mb-6">
-                   Ready to prove your skills? Generate a custom mock interview tailored exactly to this resume.
-                 </p>
-                 <Link href="/dashboard" className="w-full block">
-                   <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm">
-                     Start Practice Interview <ArrowRight className="w-4 h-4 ml-2" />
-                   </Button>
-                 </Link>
+                <div className="p-5 border rounded-xl bg-muted/20 relative overflow-hidden opacity-70 hover:opacity-100 transition-opacity">
+                   <h4 className="font-semibold flex items-center gap-2 mb-2">
+                     Step 3: Start Interview
+                   </h4>
+                   <p className="text-sm text-muted-foreground mb-6">
+                     Once you've reviewed your matched roles, you can proceed to the Mock or Real-time interviews.
+                   </p>
+                   <Link href="/interview/setup" className="w-full block mt-auto">
+                     <Button variant="outline" className="w-full">
+                       Skip to Interviews <ArrowRight className="w-4 h-4 ml-2" />
+                     </Button>
+                   </Link>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="mt-8 p-6 border rounded-xl bg-muted/20 flex flex-col items-center text-center">
+                <BrainCircuit className="w-12 h-12 text-primary/40 mb-4" />
+                <h4 className="font-bold text-lg mb-2">Analyze Your Resume</h4>
+                <p className="text-muted-foreground text-sm max-w-md mb-6">
+                  Extract your skills and experience to unlock AI-powered interview questions and tailored practice modes.
+                </p>
+                <Button onClick={handleParseExisting} className="bg-primary text-primary-foreground gap-2">
+                  <BrainCircuit className="w-4 h-4" /> Extract & Analyze
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       ) : (

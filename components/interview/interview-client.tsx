@@ -127,221 +127,159 @@ export function InterviewClient({ interviewId, questions }: InterviewClientProps
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, currentQuestionIndex])
 
+  // --- Auto Advance Logic ---
   useEffect(() => {
-    if (phase === "avatar_speaking" && isTTSOn && !isSpeaking) {
-      const t = setTimeout(() => {
-        setPhase("user_answering")
-        triggerEmotion("listening")
-      }, 600)
-      return () => clearTimeout(t)
+    if (phase === "user_answering" && liveTranscript.length > 5) {
+      const silenceDuration = Date.now() - lastSpeechTime
+      if (silenceDuration > 4000) { // 4 seconds of silence = auto advance
+        saveAndAdvance()
+      }
     }
-  }, [isSpeaking, phase, isTTSOn, triggerEmotion])
-
-  useEffect(() => {
-    if (phase !== "user_answering") return
-
-    if (isMicOn && sttSupported) {
-      startListening()
-    }
-
-    timerRef.current = setInterval(() => {
-      setTimer(t => t + 1)
-    }, 1000)
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [phase, isMicOn, sttSupported, startListening])
-
-  const handleEndInterview = () => {
-    if (confirm("Are you sure you want to end the practice session? Your progress will be saved.")) {
-      stopTTS()
-      stopListening()
-      window.location.href = "/history"
-    }
-  }
-
-  const formatTime = (secs: number) => {
-    const m = Math.floor(secs / 60).toString().padStart(2, "0")
-    const s = (secs % 60).toString().padStart(2, "0")
-    return `${m}:${s}`
-  }
-
-  const isAvatarSpeaking = phase === "avatar_speaking" && isSpeaking
-
-  // --- Render Finished ---
-  if (phase === "finished") {
-    return (
-      <div className="min-h-screen w-full bg-background flex flex-col items-center justify-center p-6 gap-8">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary"
-        >
-          <CheckCircle2 className="w-12 h-12" />
-        </motion.div>
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Practice Complete</h1>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            Your interview session has been recorded successfully. Generating your evaluation report...
-          </p>
-        </div>
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    )
-  }
+  }, [phase, liveTranscript, lastSpeechTime, saveAndAdvance])
 
   // --- Render Active Session ---
   return (
-    <div className="min-h-screen w-full bg-background flex flex-col font-sans">
+    <div className="h-screen w-screen bg-black text-white flex flex-col font-sans overflow-hidden">
       
       {/* HEADER */}
-      <header className="h-16 border-b border-border/50 px-4 md:px-8 flex items-center justify-between bg-card shrink-0">
+      <header className="h-14 border-b border-white/10 px-6 flex items-center justify-between shrink-0 bg-zinc-950/50 backdrop-blur-md z-50">
         <div className="flex items-center gap-4">
-          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center font-bold text-primary">
+          <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center font-bold text-primary">
             IN
           </div>
           <div className="hidden sm:block">
             <h1 className="font-semibold tracking-tight text-sm">Practice Interview</h1>
-            <p className="text-xs text-muted-foreground">Rehearse your answers before the real interview.</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-6 md:w-1/3 md:max-w-md">
+        <div className="flex items-center gap-6 md:w-1/4">
           <div className="flex-1">
-            <div className="flex justify-between text-xs mb-1.5 font-medium">
-              <span className="text-muted-foreground">Question {currentQuestionIndex + 1} of {questions.length}</span>
-              <span className="text-foreground">{Math.round(progress)}%</span>
+            <div className="flex justify-between text-[10px] uppercase tracking-wider mb-1 font-medium text-white/50">
+              <span>Question {currentQuestionIndex + 1} of {questions.length}</span>
+              <span>{Math.round(progress)}%</span>
             </div>
-            <Progress value={progress} className="h-2" />
+            <Progress value={progress} className="h-1.5 bg-white/10" />
           </div>
-          <Button variant="ghost" size="sm" onClick={handleEndInterview} className="text-muted-foreground hover:text-destructive shrink-0">
-            End Practice
+          <Button variant="ghost" size="sm" onClick={handleEndInterview} className="text-white/50 hover:text-destructive shrink-0 h-8 text-xs">
+            End
           </Button>
         </div>
       </header>
 
-      {/* MAIN STAGE */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 flex flex-col lg:flex-row gap-8">
+      {/* MAIN STAGE: 40 / 40 / 20 Split */}
+      <main className="flex-1 flex flex-row w-full relative">
         
-        {/* Left Column: Question & Answer (High Priority) */}
-        <div className="flex-1 flex flex-col">
-          <div className="mb-6 space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted border border-border/50 text-xs font-medium text-muted-foreground">
-              {currentQuestion?.category} • {currentQuestion?.difficulty === 1 ? 'Beginner' : currentQuestion?.difficulty === 2 ? 'Intermediate' : 'Advanced'}
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold leading-tight text-foreground">
-              {currentQuestion?.question}
-            </h2>
-          </div>
-
-          <Card className="flex-1 border-border/50 shadow-sm flex flex-col overflow-hidden">
-             <CardHeader className="bg-muted/20 border-b border-border/50 py-3 px-4 flex flex-row items-center justify-between shrink-0">
-               <div className="flex items-center gap-2">
-                 <MessageSquare className="w-4 h-4 text-primary" />
-                 <CardTitle className="text-sm font-medium">Your Answer</CardTitle>
-               </div>
-               <div className="flex items-center gap-3">
-                  {phase === "user_answering" && isListening && (
-                    <span className="flex items-center gap-1.5 text-xs text-red-500 font-medium animate-pulse">
-                      <span className="w-2 h-2 rounded-full bg-red-500" /> Recording
-                    </span>
-                  )}
-                  {phase === "user_answering" && (
-                    <span className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
-                      <Clock className="w-3.5 h-3.5" />
-                      {formatTime(timer)}
-                    </span>
-                  )}
-               </div>
-             </CardHeader>
-             <CardContent className="flex-1 p-0 flex flex-col relative bg-background">
-                {/* Overlay if avatar is speaking */}
-                {phase === "avatar_speaking" && (
-                  <div className="absolute inset-0 z-10 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <Volume2 className="w-6 h-6 text-primary animate-pulse" />
-                    </div>
-                    <p className="font-semibold text-lg">Listen to the question</p>
-                    <p className="text-sm text-muted-foreground mt-1">You can answer once the interviewer finishes speaking.</p>
-                  </div>
-                )}
-                
-                {/* Overlay if saving */}
-                {phase === "saving" && (
-                  <div className="absolute inset-0 z-10 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
-                    <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
-                    <p className="font-semibold text-lg">Submitting Answer...</p>
-                  </div>
-                )}
-
-                <Textarea 
-                  className="flex-1 border-0 rounded-none shadow-none resize-none focus-visible:ring-0 p-6 text-base leading-relaxed md:text-lg"
-                  placeholder="Start speaking, or type your answer here..."
-                  value={liveTranscript}
-                  onChange={(e) => setTranscript(e.target.value)}
-                  disabled={phase !== "user_answering"}
-                />
-             </CardContent>
-             <div className="p-4 border-t border-border/50 bg-muted/20 flex items-center justify-between shrink-0">
-               <div className="flex gap-2">
-                 <Button variant="outline" size="sm" onClick={() => setIsMicOn(!isMicOn)} className={!isMicOn ? "text-destructive" : ""}>
-                   {isMicOn ? <Mic className="w-4 h-4 mr-2" /> : <MicOff className="w-4 h-4 mr-2" />}
-                   {isMicOn ? "Mic On" : "Mic Off"}
-                 </Button>
-                 <Button variant="outline" size="sm" onClick={() => setIsCameraOn(!isCameraOn)} className={!isCameraOn ? "text-destructive" : ""}>
-                   {isCameraOn ? <Video className="w-4 h-4 mr-2" /> : <VideoOff className="w-4 h-4 mr-2" />}
-                   {isCameraOn ? "Cam On" : "Cam Off"}
-                 </Button>
-               </div>
-               <Button 
-                 onClick={saveAndAdvance} 
-                 disabled={phase !== "user_answering" || !liveTranscript.trim()}
-                 className="shadow-sm pl-6"
-               >
-                 Submit Answer <ArrowRight className="w-4 h-4 ml-2" />
-               </Button>
-             </div>
-          </Card>
+        {/* Left 40%: Interviewer Avatar */}
+        <div className="w-[40%] relative border-r border-white/10 bg-zinc-900">
+           <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-md">
+             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+             <span className="text-xs font-medium text-white/80 tracking-wide uppercase">Interviewer</span>
+           </div>
+           
+           <Canvas shadows camera={{ position: [0, 1.5, 3.5], fov: 45 }}>
+             <ambientLight intensity={0.5} />
+             <directionalLight position={[5, 10, 5]} intensity={1.2} castShadow />
+             <Environment preset="city" />
+             <Avatar isSpeaking={isAvatarSpeaking} emotion={currentEmotion} interviewerType={interviewer} />
+             <ContactShadows position={[0, -0.6, 0]} opacity={0.6} scale={10} blur={2.5} far={4} color="#000000" />
+             <OrbitControls enableZoom={false} enablePan={false} maxPolarAngle={Math.PI / 2} minPolarAngle={Math.PI / 3} />
+           </Canvas>
         </div>
 
-        {/* Right Column: Context (Lower Priority) */}
-        <div className="w-full lg:w-[320px] xl:w-[380px] shrink-0 flex flex-col gap-6">
-           
-           <Card className="border-border/50 shadow-sm overflow-hidden">
-             <CardHeader className="bg-muted/20 border-b border-border/50 py-3 px-4">
-                <CardTitle className="text-sm font-medium flex items-center justify-between">
-                  Interviewer
-                  {phase === "avatar_speaking" && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full animate-pulse uppercase tracking-wider">Speaking</span>}
-                </CardTitle>
-             </CardHeader>
-             <div className="aspect-square relative bg-muted/50 cursor-grab active:cursor-grabbing">
-                <Canvas shadows camera={{ position: [0, 1.5, 3.5], fov: 45 }}>
-                  <color attach="background" args={["transparent"]} />
-                  <ambientLight intensity={0.5} />
-                  <directionalLight position={[5, 10, 5]} intensity={1.2} castShadow shadow-mapSize={[1024, 1024]} />
-                  <Environment preset="city" />
-                  <Avatar isSpeaking={isAvatarSpeaking} emotion={currentEmotion} interviewerType={interviewer} />
-                  <ContactShadows position={[0, -0.6, 0]} opacity={0.6} scale={10} blur={2.5} far={4} />
-                  <OrbitControls enableZoom={false} enablePan={false} maxPolarAngle={Math.PI / 2} minPolarAngle={Math.PI / 3} />
-                </Canvas>
-             </div>
-           </Card>
+        {/* Center 40%: User Camera */}
+        <div className="w-[40%] relative border-r border-white/10 bg-black flex flex-col items-center justify-center">
+           <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-md">
+             <div className={`w-2 h-2 rounded-full ${isListening ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`} />
+             <span className="text-xs font-medium text-white/80 tracking-wide uppercase">You</span>
+           </div>
 
-           <Card className="border-border/50 shadow-sm overflow-hidden">
-             <CardHeader className="bg-muted/20 border-b border-border/50 py-3 px-4">
-                <CardTitle className="text-sm font-medium">Your Camera</CardTitle>
-             </CardHeader>
-             <div className="aspect-video relative bg-black shrink-0">
-                <WebcamPreview isCameraOn={isCameraOn} />
-                {!isCameraOn && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white/50 backdrop-blur-sm">
-                    <VideoOff className="w-6 h-6 mb-2 opacity-50" />
-                    <span className="text-xs font-medium tracking-wide">Camera Disabled</span>
-                  </div>
-                )}
+           {isCameraOn ? (
+             <WebcamPreview isCameraOn={true} />
+           ) : (
+             <div className="flex flex-col items-center text-white/30">
+               <VideoOff className="w-12 h-12 mb-2" />
+               <p className="text-sm">Camera Disabled</p>
              </div>
-           </Card>
+           )}
+
+           {/* Controls overlay */}
+           <div className="absolute top-4 right-4 z-10 flex gap-2">
+             <Button variant="outline" size="icon" onClick={() => setIsMicOn(!isMicOn)} className={`h-8 w-8 rounded-full bg-black/40 border-white/10 ${!isMicOn ? "text-destructive" : "text-white"}`}>
+               {isMicOn ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+             </Button>
+             <Button variant="outline" size="icon" onClick={() => setIsCameraOn(!isCameraOn)} className={`h-8 w-8 rounded-full bg-black/40 border-white/10 ${!isCameraOn ? "text-destructive" : "text-white"}`}>
+               {isCameraOn ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
+             </Button>
+           </div>
+        </div>
+
+        {/* Subtitles Overlay (Spanning left 80%) */}
+        <div className="absolute bottom-0 left-0 w-[80%] p-8 z-20 pointer-events-none flex flex-col justify-end bg-gradient-to-t from-black via-black/60 to-transparent pt-32 h-64">
+           {phase === "avatar_speaking" && currentSpeechText && (
+             <div className="max-w-4xl mx-auto w-full">
+               <p className="text-2xl md:text-3xl font-medium text-white/90 drop-shadow-lg text-center leading-relaxed">
+                 {currentSpeechText}
+               </p>
+             </div>
+           )}
+           {phase === "user_answering" && (
+             <div className="max-w-4xl mx-auto w-full">
+               {liveTranscript ? (
+                 <p className="text-2xl md:text-3xl font-medium text-white/90 drop-shadow-lg text-center leading-relaxed">
+                   {liveTranscript}
+                 </p>
+               ) : (
+                 <p className="text-xl md:text-2xl font-medium text-white/40 drop-shadow-lg text-center italic">
+                   Listening...
+                 </p>
+               )}
+             </div>
+           )}
+           {phase === "saving" && (
+             <div className="max-w-4xl mx-auto w-full flex flex-col items-center">
+                <Loader2 className="w-8 h-8 animate-spin text-primary mb-2" />
+                <p className="text-xl font-medium text-white/70">Processing your answer...</p>
+             </div>
+           )}
+        </div>
+
+        {/* Right 20%: Conversation History */}
+        <div className="w-[20%] bg-zinc-950 flex flex-col overflow-hidden relative">
+          <div className="p-4 border-b border-white/10 bg-zinc-900/50 shrink-0">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50">Conversation</h3>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-4 space-y-6 flex flex-col">
+            {questions.map((q, idx) => {
+              if (idx > currentQuestionIndex) return null
+              
+              const isCurrent = idx === currentQuestionIndex
+              const answer = transcripts[q.id]
+
+              return (
+                <div key={q.id} className={`space-y-3 ${isCurrent ? 'opacity-100' : 'opacity-50'}`}>
+                  {/* Question */}
+                  <div className="bg-primary/10 border border-primary/20 p-3 rounded-lg rounded-tl-none">
+                    <p className="text-[10px] font-bold text-primary mb-1 uppercase tracking-wider">Interviewer</p>
+                    <p className="text-sm text-white/90 leading-snug">{q.question}</p>
+                  </div>
+
+                  {/* Answer */}
+                  {(answer || isCurrent) && (
+                    <div className="bg-zinc-800 border border-white/10 p-3 rounded-lg rounded-tr-none ml-4">
+                      <p className="text-[10px] font-bold text-white/50 mb-1 uppercase tracking-wider flex justify-between">
+                        You
+                        {isCurrent && phase === "user_answering" && <span className="text-red-400 animate-pulse">Recording...</span>}
+                      </p>
+                      <p className="text-sm text-white/80 leading-snug break-words">
+                        {answer || (isCurrent && liveTranscript) || <span className="italic opacity-50">...</span>}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
 
       </main>
