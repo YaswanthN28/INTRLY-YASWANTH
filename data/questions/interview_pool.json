@@ -1,0 +1,33 @@
+{
+  "Backend Developer": [
+    "Welcome to your Backend Developer interview. To begin, could you introduce yourself and highlight your most relevant professional experience?",
+    "What are the core technical tools, languages, or frameworks you rely on, and how have you used them in your recent projects?",
+    "Can you describe a challenging engineering problem or production issue you personally debugged and solved?",
+    "How do you ensure code quality, test coverage, and clear architectural decisions when working under tight deadlines?",
+    "Explain how you design a RESTful API. What are the key principles and best practices you follow?",
+    "How do you handle database migrations and schema changes in a production environment with zero downtime?",
+    "Describe your experience with message queues or event-driven architectures. When would you choose them over synchronous REST calls?",
+    "How do you approach securing a backend service? What common vulnerabilities do you actively protect against?",
+    "Tell me about a time you had to optimize the performance of a slow API or database query. What steps did you take?",
+    "What kind of impact or growth are you looking for next in this Backend Developer position?"
+  ],
+  "UI/UX Designer": [
+    "Welcome to your UI/UX Design interview. Could you start by introducing yourself and walking me through your design background?",
+    "What is your typical design process from receiving a brief to handing off the final designs to developers?",
+    "Can you walk me through a complex user problem you solved recently? How did you arrive at your solution?",
+    "How do you balance user needs with business goals when they conflict?",
+    "Describe your experience with design systems. Have you ever built one from scratch or contributed significantly to an existing one?",
+    "How do you approach accessibility in your designs? What guidelines or practices do you follow?",
+    "Tell me about a time you received harsh feedback on a design. How did you handle it and what was the outcome?",
+    "What tools do you prefer for wireframing and high-fidelity prototyping, and why?",
+    "How do you validate your design decisions? Describe your experience with user testing or analyzing user metrics.",
+    "What are you looking to achieve in your next UI/UX role, and how do you want to grow as a designer?"
+  ],
+  "General": [
+    "Welcome. Please introduce yourself and highlight your most relevant professional experience.",
+    "Why are you interested in this role and our company?",
+    "Tell me about a time you had to work with a difficult team member. How did you resolve the situation?",
+    "What is your greatest professional achievement so far?",
+    "Where do you see your career heading in the next 3 to 5 years?"
+  ]
+}
