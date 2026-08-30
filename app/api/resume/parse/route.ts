@@ -49,10 +49,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Unsupported file type. Please upload PDF or DOCX.' }, { status: 400 });
       }
     } else {
-      // Fetch the resume from DB to see if it has latex_source
+      // Fetch the resume from DB to see if it has latex_source or a file_url
       const { data: existingResume } = await supabase
         .from('resumes')
-        .select('latex_source')
+        .select('latex_source, file_url, file_name')
         .eq('id', resumeId)
         .eq('user_id', user.id)
         .single();
@@ -60,6 +60,28 @@ export async function POST(request: NextRequest) {
       if (existingResume?.latex_source) {
         // Strip out basic LaTeX commands for the parser
         rawText = existingResume.latex_source.replace(/\\[a-zA-Z]+\*?(\{.*?\})?/g, ' ').replace(/[{}]/g, '');
+      } else if (existingResume?.file_url) {
+        // Download the file from storage
+        const { data: fileData, error: downloadError } = await supabase.storage
+          .from('resumes')
+          .download(existingResume.file_url);
+
+        if (downloadError || !fileData) {
+          return NextResponse.json({ error: 'Failed to download resume file from storage.' }, { status: 500 });
+        }
+
+        const buffer = Buffer.from(await fileData.arrayBuffer());
+        const fileName = existingResume.file_name || '';
+
+        if (fileName.toLowerCase().endsWith('.pdf')) {
+          const pdfData = await pdfParse(buffer);
+          rawText = pdfData.text;
+        } else if (fileName.toLowerCase().endsWith('.docx')) {
+          const docxData = await mammoth.extractRawText({ buffer });
+          rawText = docxData.value;
+        } else {
+          return NextResponse.json({ error: 'Unsupported file type in storage. Please upload PDF or DOCX.' }, { status: 400 });
+        }
       } else {
         return NextResponse.json({ error: 'Missing file and no source available to parse.' }, { status: 400 });
       }

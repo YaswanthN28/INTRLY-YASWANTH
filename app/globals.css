@@ -3,89 +3,98 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #FCFAFB;
-  --foreground: #1A1A1A;
-  --card: #FFFFFF;
-  --card-foreground: #1A1A1A;
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1A1A;
-  --primary: #69355E;
+  /* Neumorphism Light Base */
+  --background: #E0E5EC;
+  --foreground: #4A5568;
+  --card: #E0E5EC;
+  --card-foreground: #4A5568;
+  --popover: #E0E5EC;
+  --popover-foreground: #4A5568;
+  --primary: #0D9488;
   --primary-foreground: #FFFFFF;
-  --secondary: #F0E8ED;
-  --secondary-foreground: #3B283D;
-  --muted: #F5EEF2;
-  --muted-foreground: #6B5E67;
-  --accent: #9B6281;
-  --accent-foreground: #FFFFFF;
-  --destructive: #E07A5F;
+  --secondary: #E0E5EC;
+  --secondary-foreground: #4A5568;
+  --muted: #E0E5EC;
+  --muted-foreground: #718096;
+  --accent: #E0E5EC;
+  --accent-foreground: #4A5568;
+  --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border: #E8DCE2;
-  --input: #E8DCE2;
-  --ring: #69355E;
+  
+  /* Remove harsh borders for neumorphism */
+  --border: transparent;
+  --input: #E0E5EC;
+  --ring: #0D9488;
   
   --success: #81C784;
   --warning: #FFB74D;
-  --error: #E07A5F;
+  --error: #EF4444;
   --info: #64B5F6;
 
-  --evidence-strong: #81C784;
-  --evidence-moderate: #FFB74D;
-  --evidence-weak: #E07A5F;
-  --evidence-insufficient: #4A4A4A;
-
-  --chart-1: #69355E;
-  --chart-2: #9B6281;
-  --chart-3: #3B283D;
-  --chart-4: #81C784;
-  --chart-5: #FFB74D;
+  --chart-1: #0D9488;
+  --chart-2: #0F766E;
+  --chart-3: #115E59;
+  --chart-4: #2DD4BF;
+  --chart-5: #5EEAD4;
   
-  --radius: 0.75rem; /* 12px */
+  --radius: 1rem; /* Softer radius */
 
-  --sidebar: #FCFAFB;
-  --sidebar-foreground: #1A1A1A;
-  --sidebar-primary: #69355E;
+  --sidebar: #E0E5EC;
+  --sidebar-foreground: #4A5568;
+  --sidebar-primary: #0D9488;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F5EEF2;
-  --sidebar-accent-foreground: #1A1A1A;
-  --sidebar-border: #E8DCE2;
-  --sidebar-ring: #69355E;
+  --sidebar-accent: #E0E5EC;
+  --sidebar-accent-foreground: #4A5568;
+  --sidebar-border: transparent;
+  --sidebar-ring: #0D9488;
+
+  /* Neumorphic Shadows (Light) */
+  --neo-shadow: 9px 9px 16px rgb(163, 177, 198, 0.6), -9px -9px 16px rgba(255, 255, 255, 0.5);
+  --neo-shadow-sm: 5px 5px 10px rgb(163, 177, 198, 0.6), -5px -5px 10px rgba(255, 255, 255, 0.5);
+  --neo-shadow-inner: inset 6px 6px 10px 0 rgba(163, 177, 198, 0.7), inset -6px -6px 10px 0 rgba(255, 255, 255, 0.8);
 }
 
 .dark {
-  --background: #151515;
-  --foreground: #F2EBF0;
-  --card: #1E1A1D;
-  --card-foreground: #F2EBF0;
-  --popover: #1E1A1D;
-  --popover-foreground: #F2EBF0;
-  --primary: #9B6281;
-  --primary-foreground: #151515;
-  --secondary: #3B283D;
-  --secondary-foreground: #F2EBF0;
-  --muted: #2A2428;
-  --muted-foreground: #A1969D;
-  --accent: #69355E;
-  --accent-foreground: #F2EBF0;
-  --destructive: #E07A5F;
+  /* Neumorphism Dark Base */
+  --background: #1E293B;
+  --foreground: #F8FAFC;
+  --card: #1E293B;
+  --card-foreground: #F8FAFC;
+  --popover: #1E293B;
+  --popover-foreground: #F8FAFC;
+  --primary: #2DD4BF;
+  --primary-foreground: #042F2E;
+  --secondary: #1E293B;
+  --secondary-foreground: #F8FAFC;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --accent: #1E293B;
+  --accent-foreground: #F8FAFC;
+  --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border: #332A31;
-  --input: #332A31;
-  --ring: #9B6281;
+  --border: transparent;
+  --input: #1E293B;
+  --ring: #2DD4BF;
 
-  --chart-1: #9B6281;
-  --chart-2: #69355E;
-  --chart-3: #3B283D;
-  --chart-4: #81C784;
-  --chart-5: #FFB74D;
+  --chart-1: #2DD4BF;
+  --chart-2: #14B8A6;
+  --chart-3: #0D9488;
+  --chart-4: #0F766E;
+  --chart-5: #5EEAD4;
 
-  --sidebar: #151515;
-  --sidebar-foreground: #F2EBF0;
-  --sidebar-primary: #9B6281;
-  --sidebar-primary-foreground: #151515;
-  --sidebar-accent: #2A2428;
-  --sidebar-accent-foreground: #F2EBF0;
-  --sidebar-border: #332A31;
-  --sidebar-ring: #9B6281;
+  --sidebar: #1E293B;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #2DD4BF;
+  --sidebar-primary-foreground: #042F2E;
+  --sidebar-accent: #1E293B;
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: transparent;
+  --sidebar-ring: #2DD4BF;
+
+  /* Neumorphic Shadows (Dark) */
+  --neo-shadow: 9px 9px 16px rgba(15, 23, 42, 0.6), -9px -9px 16px rgba(51, 65, 85, 0.5);
+  --neo-shadow-sm: 5px 5px 10px rgba(15, 23, 42, 0.6), -5px -5px 10px rgba(51, 65, 85, 0.5);
+  --neo-shadow-inner: inset 6px 6px 10px 0 rgba(15, 23, 42, 0.6), inset -6px -6px 10px 0 rgba(51, 65, 85, 0.3);
 }
 
 @theme inline {
@@ -109,15 +118,15 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  --shadow-neo: var(--neo-shadow);
+  --shadow-neo-sm: var(--neo-shadow-sm);
+  --shadow-neo-inner: var(--neo-shadow-inner);
+
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-error: var(--error);
   --color-info: var(--info);
-  --color-evidence-strong: var(--evidence-strong);
-  --color-evidence-moderate: var(--evidence-moderate);
-  --color-evidence-weak: var(--evidence-weak);
-  --color-evidence-insufficient: var(--evidence-insufficient);
-
+  
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -126,9 +135,9 @@
   
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: var(--radius);
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 8px);
+  --radius-2xl: calc(var(--radius) + 16px);
   --radius-full: 9999px;
   
   --color-sidebar: var(--sidebar);
@@ -142,19 +151,11 @@
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-
-  --animate-blob: blob 7s infinite;
-  @keyframes blob {
-    0% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(30px, -50px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
-    100% { transform: translate(0px, 0px) scale(1); }
-  }
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-transparent outline-ring/50;
   }
   body {
     @apply bg-background text-foreground antialiased transition-colors duration-300;

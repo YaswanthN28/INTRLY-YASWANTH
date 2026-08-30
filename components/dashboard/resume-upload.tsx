@@ -17,12 +17,14 @@ export function ResumeUpload({ userId }: { userId: string }) {
   const [parsedData, setParsedData] = React.useState<any>(null)
 
   // Initialize state based on currentResume if returning to the page
+  const hasInitialized = React.useRef(false)
   React.useEffect(() => {
-    if (currentResume && uploadState === 'idle') {
+    if (currentResume && !hasInitialized.current) {
       setUploadState('success')
       setParsedData(currentResume.raw_json || null)
+      hasInitialized.current = true
     }
-  }, [currentResume, uploadState])
+  }, [currentResume])
   
   const onDrop = React.useCallback(async (acceptedFiles: File[]) => {
     setError(null)

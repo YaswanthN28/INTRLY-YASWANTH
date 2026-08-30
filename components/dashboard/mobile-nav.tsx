@@ -93,7 +93,7 @@ export function MobileNav() {
                     {group.items.map(link => {
                       const isActive = pathname === link.href && link.href !== '#'
                       
-                      if (link.disabled) {
+                      if ((link as any).disabled) {
                         return (
                           <div
                             key={link.label}

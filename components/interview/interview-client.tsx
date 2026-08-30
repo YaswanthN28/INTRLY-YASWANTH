@@ -53,10 +53,10 @@ export function InterviewClient({ interviewId, questions }: InterviewClientProps
   const currentQuestion = questions[currentQuestionIndex]
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100
 
-  const { speak, stop: stopTTS, isSpeaking } = useTTS()
+  const { speak, stop: stopTTS, isSpeaking: isAvatarSpeaking } = useTTS()
   const {
     startListening, stopListening, isListening,
-    transcript: liveTranscript, setTranscript, resetTranscript, isSupported: sttSupported
+    transcript: liveTranscript, setTranscript, resetTranscript, isSupported: sttSupported, lastSpeechTime
   } = useSTT()
   
   // --- Core Actions ---
@@ -136,6 +136,13 @@ export function InterviewClient({ interviewId, questions }: InterviewClientProps
       }
     }
   }, [phase, liveTranscript, lastSpeechTime, saveAndAdvance])
+
+  const handleEndInterview = useCallback(() => {
+    stopTTS()
+    stopListening()
+    if (timerRef.current) clearInterval(timerRef.current)
+    window.location.href = '/history'
+  }, [stopTTS, stopListening])
 
   // --- Render Active Session ---
   return (

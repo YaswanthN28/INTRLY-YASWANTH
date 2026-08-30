@@ -45,48 +45,70 @@ export async function compileLatexToPdf(latexCode: string): Promise<Buffer> {
         ],
         {
           cwd: tmpDir,
-          timeout: 120000, // Increased timeout to 120s to allow for package downloads
+          timeout: 120000,
         }
       )
     } catch (execError: any) {
-      // Check if pdflatex is just missing from the system
+      let isFallbackSuccessful = false
       if (execError.code === "ENOENT") {
-        throw new LatexCompilationError({
-          type: "DEPENDENCY_MISSING",
-          message: "LaTeX compiler (pdflatex) is not installed on the server. Please install TeX Live or a compatible distribution."
-        })
-      }
-      
-      if (execError.killed && execError.signal === "SIGTERM") {
-        throw new LatexCompilationError({
-          type: "TIMEOUT",
-          message: "LaTeX compilation timed out after 30 seconds."
-        })
-      }
-
-      // Try to read the log file to get better error context
-      let logContent = ""
-      try {
-        const logPath = path.join(tmpDir, "resume.log")
-        logContent = await fs.readFile(logPath, "utf8")
-      } catch (logErr) {
-        // Log file might not exist if it failed early
-      }
-
-      // Extract basic error message from log if possible, otherwise use stderr/stdout
-      let errorMessage = "LaTeX compilation failed."
-      if (logContent) {
-        const match = logContent.match(/!(.*?\n.*)/)
-        if (match) {
-          errorMessage = match[0].trim()
+        try {
+          await execFileAsync(
+            "C:\\Users\\yaswa\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64\\pdflatex.exe",
+            [
+              "-interaction=nonstopmode",
+              "-halt-on-error",
+              "resume.tex"
+            ],
+            {
+              cwd: tmpDir,
+              timeout: 120000,
+            }
+          )
+          isFallbackSuccessful = true
+        } catch (fallbackError: any) {
+          execError = fallbackError // overwrite with fallback error to process logs below
         }
       }
 
-      throw new LatexCompilationError({
-        type: "LATEX_ERROR",
-        message: errorMessage,
-        log: logContent || execError.stdout || execError.message
-      })
+      if (!isFallbackSuccessful) {
+        if (execError.code === "ENOENT") {
+          throw new LatexCompilationError({
+            type: "DEPENDENCY_MISSING",
+            message: "LaTeX compiler (pdflatex) is not installed on the server. Please install TeX Live or a compatible distribution."
+          })
+        }
+        
+        if (execError.killed && execError.signal === "SIGTERM") {
+          throw new LatexCompilationError({
+            type: "TIMEOUT",
+            message: "LaTeX compilation timed out after 30 seconds."
+          })
+        }
+
+        // Try to read the log file to get better error context
+        let logContent = ""
+        try {
+          const logPath = path.join(tmpDir, "resume.log")
+          logContent = await fs.readFile(logPath, "utf8")
+        } catch (logErr) {
+          // Log file might not exist if it failed early
+        }
+
+        // Extract basic error message from log if possible, otherwise use stderr/stdout
+        let errorMessage = "LaTeX compilation failed."
+        if (logContent) {
+          const match = logContent.match(/!(.*?\n.*)/)
+          if (match) {
+            errorMessage = match[0].trim()
+          }
+        }
+
+        throw new LatexCompilationError({
+          type: "LATEX_ERROR",
+          message: errorMessage,
+          log: logContent || execError.stdout || execError.message
+        })
+      }
     }
 
     const pdfPath = path.join(tmpDir, "resume.pdf")

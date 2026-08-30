@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { 
@@ -33,30 +33,35 @@ export function Sidebar({ userEmail }: SidebarProps) {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const navGroups = [
     {
-      title: "1. Resume Setup",
+      title: "Resume Setup",
       items: [
-        { href: "/resume/create", label: "Builder", icon: <PenTool className="w-4 h-4 shrink-0" /> },
-        { href: "/resume/upload", label: "Upload & Parse", icon: <FileUp className="w-4 h-4 shrink-0" /> },
+        { href: "/resume/create", label: "Resume Builder", icon: <PenTool className="w-4 h-4 shrink-0" /> },
+        { href: "/resume/upload", label: "Upload Resume", icon: <FileUp className="w-4 h-4 shrink-0" /> },
       ]
     },
     {
-      title: "2. Intelligence",
+      title: "Intelligence",
       items: [
-        { href: "/resume/intelligence", label: "Analysis & Roles", icon: <Brain className="w-4 h-4 shrink-0" /> }
+        { href: "/resume/intelligence", label: "Analysis", icon: <Brain className="w-4 h-4 shrink-0" /> }
       ]
     },
     {
-      title: "3. Interviews",
+      title: "Interviews",
       items: [
         { href: "/interview/setup", label: "Start Interview", icon: <Target className="w-4 h-4 shrink-0" /> },
         { href: "/history", label: "Past Interviews", icon: <History className="w-4 h-4 shrink-0" /> }
       ]
     },
     {
-      title: "4. Results & Jobs",
+      title: "Results & Jobs",
       items: [
         { href: "/interview/results", label: "Job Matches", icon: <Briefcase className="w-4 h-4 shrink-0" /> },
       ]
@@ -83,20 +88,14 @@ export function Sidebar({ userEmail }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-6 space-y-6 overflow-y-auto overflow-x-hidden">
+      <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto overflow-x-hidden">
         {navGroups.map((group, idx) => (
-          <div key={idx} className="space-y-2">
-            {!isCollapsed && (
-              <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest px-3 truncate">
-                {group.title}
-              </h3>
-            )}
+          <div key={idx} className="contents">
             {isCollapsed && <div className="h-4"></div>}
-            <div className="space-y-1">
-              {group.items.map(link => {
+            {group.items.map(link => {
                 const isActive = pathname === link.href || (pathname.startsWith(link.href) && link.href !== '/dashboard' && link.href !== '/history' && link.href !== '#')
                 
-                if (link.disabled) {
+                if ((link as any).disabled) {
                   return (
                     <div
                       key={link.label}
@@ -126,7 +125,6 @@ export function Sidebar({ userEmail }: SidebarProps) {
                   </Link>
                 )
               })}
-            </div>
           </div>
         ))}
       </nav>
@@ -157,8 +155,9 @@ export function Sidebar({ userEmail }: SidebarProps) {
             className="shrink-0 h-10 w-10 border-border transition-all duration-300 hover:bg-accent hover:text-accent-foreground"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             title="Toggle theme"
+            suppressHydrationWarning
           >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {mounted && theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             <span className="sr-only">Toggle theme</span>
           </Button>
         </div>
